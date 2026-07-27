@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRightIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ChevronRightIcon, SettingsIcon } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
@@ -31,6 +32,7 @@ function notBuiltYet(section: string) {
 
 export function LeftRail({ activeSection = 'queue' }: { activeSection?: string }) {
   const [recordsOpen, setRecordsOpen] = useState(false)
+  const router = useRouter()
 
   return (
     <nav
@@ -56,6 +58,8 @@ export function LeftRail({ activeSection = 'queue' }: { activeSection?: string }
                 onClick={() => {
                   if (isRecords) {
                     setRecordsOpen((o) => !o)
+                  } else if (section.id === 'queue') {
+                    if (!isActive) router.push('/')
                   } else if (!isActive) {
                     notBuiltYet(section.label)
                   }
@@ -108,6 +112,26 @@ export function LeftRail({ activeSection = 'queue' }: { activeSection?: string }
           )
         })}
       </ul>
+
+      {/* Pinned bottom: Settings */}
+      <div className="px-3 pb-2">
+        <button
+          type="button"
+          aria-current={activeSection === 'settings' ? 'page' : undefined}
+          onClick={() => {
+            if (activeSection !== 'settings') router.push('/settings')
+          }}
+          className={cn(
+            'flex w-full items-center gap-3 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+            activeSection === 'settings'
+              ? 'bg-sidebar-accent text-sidebar-foreground'
+              : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
+          )}
+        >
+          <SettingsIcon aria-hidden className="size-3.5 text-muted-foreground/60" />
+          <span className="flex-1">Settings</span>
+        </button>
+      </div>
 
       <div className="px-5 pb-4">
         <p className="text-[11px] leading-relaxed text-muted-foreground/50">
