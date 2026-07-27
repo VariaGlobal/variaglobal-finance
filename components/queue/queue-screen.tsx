@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { Rows2Icon, Rows4Icon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
-import { QueueRow } from '@/components/queue/queue-row'
+import { QueueRow, type QueueDensity } from '@/components/queue/queue-row'
 import { QueueEmptyState } from '@/components/queue/queue-empty-state'
 import { WorkItemDrawer } from '@/components/queue/work-item-drawer'
 import { ConfirmActionDialog } from '@/components/queue/confirm-action-dialog'
@@ -46,6 +48,7 @@ function matchesChips(item: WorkItem, chips: FilterChip[]): boolean {
 export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
   const [resolvedIds, setResolvedIds] = useState<string[]>([])
   const [exitingIds, setExitingIds] = useState<string[]>([])
+  const [density, setDensity] = useState<QueueDensity>('comfortable')
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [pendingAction, setPendingAction] = useState<{
@@ -90,12 +93,12 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
     (item: WorkItem, action: WorkItemAction, reason?: string) => {
       setPendingAction(null)
       setDrawerOpen(false)
-      // Cause → effect: the row leaves the queue on approve.
+      // Cause → effect: 220ms compress + accent sweep, then the toast.
       setExitingIds((ids) => [...ids, item.id])
       setTimeout(() => {
         setResolvedIds((ids) => [...ids, item.id])
         setExitingIds((ids) => ids.filter((id) => id !== item.id))
-      }, 280)
+      }, 230)
       toast(`${action.label} recorded`, {
         description: reason
           ? `${item.title} · reason: ${reason} · by ${user.name}`
@@ -166,7 +169,11 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
 
   return (
     <div className="flex min-h-full flex-col" ref={listRef}>
-      <QueueHeader count={visibleItems.length} />
+      <QueueHeader
+        count={visibleItems.length}
+        density={density}
+        onDensityChange={setDensity}
+      />
 
       {visibleItems.length === 0 ? (
         <QueueEmptyState filtered={chips.length > 0 || entity.id !== 'varia-global'} />
@@ -179,7 +186,7 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
                 role="listitem"
                 key={item.id}
                 className={cn(
-                  'grid transition-[grid-template-rows] duration-250 ease-out',
+                  'grid transition-[grid-template-rows] duration-[220ms] ease-out',
                   exiting ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]',
                 )}
               >
@@ -188,6 +195,7 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
                     item={item}
                     selected={index === clampedIndex}
                     exiting={exiting}
+                    density={density}
                     onOpen={() => {
                       setSelectedIndex(index)
                       setDrawerOpen(true)
@@ -231,7 +239,15 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
   )
 }
 
-function QueueHeader({ count }: { count: number }) {
+function QueueHeader({
+  count,
+  density,
+  onDensityChange,
+}: {
+  count: number
+  density: QueueDensity
+  onDensityChange: (density: QueueDensity) => void
+}) {
   return (
     <div className="flex items-center justify-between px-5 pt-6 pb-4">
       <div className="flex items-baseline gap-3">
@@ -240,15 +256,36 @@ function QueueHeader({ count }: { count: number }) {
           {count} {count === 1 ? 'item' : 'items'}
         </span>
       </div>
-      <p className="hidden items-center gap-2 text-xs text-muted-foreground md:flex">
-        <Kbd>J</Kbd>
-        <Kbd>K</Kbd>
-        move
-        <Kbd>↵</Kbd>
-        open
-        <Kbd>A</Kbd>
-        approve
-      </p>
+      <div className="flex items-center gap-3">
+        <p className="hidden items-center gap-2 text-xs text-muted-foreground md:flex">
+          <Kbd>J</Kbd>
+          <Kbd>K</Kbd>
+          move
+          <Kbd>↵</Kbd>
+          open
+          <Kbd>A</Kbd>
+          approve
+        </p>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={
+            density === 'comfortable'
+              ? 'Switch to compact rows'
+              : 'Switch to comfortable rows'
+          }
+          className="text-muted-foreground"
+          onClick={() =>
+            onDensityChange(density === 'comfortable' ? 'compact' : 'comfortable')
+          }
+        >
+          {density === 'comfortable' ? (
+            <Rows4Icon className="size-4" />
+          ) : (
+            <Rows2Icon className="size-4" />
+          )}
+        </Button>
+      </div>
     </div>
   )
 }
