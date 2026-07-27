@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import {
+  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -49,8 +50,9 @@ export function CommandPalette({
       title="Command palette"
       description="Search sections, entities, views, and actions"
     >
-      <CommandInput placeholder="Type a command or search…" />
-      <CommandList>
+      <Command>
+        <CommandInput placeholder="Type a command or search…" />
+        <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Go to">
           <CommandItem onSelect={() => run(() => {})}>
@@ -113,7 +115,8 @@ export function CommandPalette({
             Clear all filters
           </CommandItem>
         </CommandGroup>
-      </CommandList>
+        </CommandList>
+      </Command>
     </CommandDialog>
   )
 }
