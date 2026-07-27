@@ -8,22 +8,29 @@
  * grouping, motion explains causality.
  */
 
+/**
+ * Four elevation steps by lightness only — no shadows anywhere except a
+ * single 24px soft ambient under the drawer and command palette.
+ */
 export const palette = {
   dark: {
-    background: '#0a0a0c',
-    card: '#101014',
-    popover: '#121217',
+    background: '#0a0a0c', // page
+    sidebar: '#111114', // rails
+    card: '#16161a', // cards
+    popover: '#1c1c21', // overlays
     foreground: '#ececee',
     mutedForeground: '#85858f',
-    border: 'rgba(255, 255, 255, 0.08)',
+    border: 'rgba(255, 255, 255, 0.08)', // hairlines at 8%
     accent: '#6ea0ff', // the one restrained accent (focus ring, prepared)
   },
   light: {
-    background: '#f7f7f8',
-    card: '#ffffff',
-    foreground: '#141417',
-    mutedForeground: '#6d6d76',
-    border: 'rgba(20, 20, 23, 0.09)',
+    background: '#f7f6f3', // warm paper, not pure #fff
+    sidebar: '#f1f0ec',
+    card: '#fbfaf8',
+    popover: '#ffffff',
+    foreground: '#161512',
+    mutedForeground: '#6e6c64',
+    border: 'rgba(22, 21, 18, 0.08)', // hairlines at 8%
     accent: '#2f6fed',
   },
 } as const
@@ -39,12 +46,16 @@ export const stateColors = {
 
 export type WorkItemStatus = keyof typeof stateColors | 'review'
 
-/** Motion: 150–250ms ease-out, opacity/transform only, nothing bouncy. */
+/**
+ * Motion explains what just happened, never decorates.
+ * If an animation doesn't answer "what did I just do," delete it.
+ */
 export const motion = {
-  fast: 150, // chips, hovers, toggles
-  base: 200, // drawers, dialogs
-  slow: 250, // row exit on approve (cause → effect)
-  easing: 'cubic-bezier(0.25, 1, 0.5, 1)', // ease-out
+  fast: 150, // chips pop in with a 4px rise, hovers, toggles
+  rowExit: 220, // approve: row compresses while a 1px accent line sweeps
+  drawer: 280, // drawer slide; content fades in 40ms behind it
+  easing: 'cubic-bezier(0.25, 1, 0.5, 1)', // ease-out (rows, chips)
+  drawerEasing: 'cubic-bezier(0.32, 0.72, 0, 1)',
 } as const
 
 /** Spacing scale (px) — mirrors the Tailwind scale we actually use. */
@@ -58,10 +69,14 @@ export const radius = {
   xl: 0.7,
 } as const
 
-/** Typography rules. */
+/** Typography rules — type is the entire interface. */
 export const type = {
   sans: 'Geist',
   mono: 'Geist Mono',
+  /** Titles: 15/22 with -0.01em tracking → `.text-title` utility. */
+  titleClass: 'text-title',
+  /** Metadata: 12.5/18 at 60% foreground → `.text-meta` utility. */
+  metaClass: 'text-meta',
   /** ALL numeric UI uses tabular figures (set globally on <html>). */
   numeric: 'tabular-nums',
   /** Money is always mono, always shows cents. */

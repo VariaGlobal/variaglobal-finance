@@ -61,6 +61,8 @@ export interface WorkItemAction {
   confirm?: {
     title: string
     records: string[] // bullet lines: exactly what gets recorded
+    /** Explicit confirm button copy, e.g. "Approve and freeze cycle". */
+    confirmLabel?: string
   }
   /** Approving removes the item from the queue. */
   resolves: boolean

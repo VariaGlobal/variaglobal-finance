@@ -222,8 +222,9 @@ export function TopBar({
             <span
               key={chip.id}
               className={cn(
-                'inline-flex h-6 items-center gap-1.5 rounded-full border border-border bg-secondary pr-1 pl-2.5 text-xs text-secondary-foreground',
-                'animate-in fade-in zoom-in-95 duration-150',
+                'inline-flex h-6 items-center gap-1.5 rounded-full border border-border pr-1 pl-2.5 text-xs text-foreground',
+                // Pop in with a 4px rise, no bounce.
+                'animate-in fade-in slide-in-from-bottom-1 duration-150 ease-out',
               )}
             >
               <span className="text-muted-foreground">

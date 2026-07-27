@@ -51,36 +51,39 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Light theme (secondary) */
+/* Light theme — warm paper, four elevation steps by lightness only.
+   page #f7f6f3 · rails #f1f0ec · cards #fbfaf8 · overlays #ffffff */
 :root {
   color-scheme: light;
-  --background: #f7f7f8;
-  --foreground: #141417;
-  --card: #ffffff;
-  --card-foreground: #141417;
+  --background: #f7f6f3;
+  --foreground: #161512;
+  --card: #fbfaf8;
+  --card-foreground: #161512;
   --popover: #ffffff;
-  --popover-foreground: #141417;
-  --primary: #17171b;
-  --primary-foreground: #f7f7f8;
-  --secondary: #ececee;
-  --secondary-foreground: #17171b;
-  --muted: #efeff1;
-  --muted-foreground: #6d6d76;
-  --accent: #ececee;
-  --accent-foreground: #17171b;
+  --popover-foreground: #161512;
+  --primary: #191813;
+  --primary-foreground: #f7f6f3;
+  --secondary: #edebe6;
+  --secondary-foreground: #191813;
+  --muted: #efeee9;
+  --muted-foreground: #6e6c64;
+  --accent: #edebe6;
+  --accent-foreground: #191813;
   --destructive: #dc2626;
-  --border: rgba(20, 20, 23, 0.09);
-  --input: rgba(20, 20, 23, 0.12);
+  --border: rgba(22, 21, 18, 0.08);
+  --input: rgba(22, 21, 18, 0.12);
   --ring: #2f6fed;
   --radius: 0.5rem;
-  --sidebar: #f2f2f4;
-  --sidebar-foreground: #141417;
-  --sidebar-primary: #17171b;
-  --sidebar-primary-foreground: #f7f7f8;
-  --sidebar-accent: #e7e7ea;
-  --sidebar-accent-foreground: #17171b;
-  --sidebar-border: rgba(20, 20, 23, 0.08);
+  --sidebar: #f1f0ec;
+  --sidebar-foreground: #161512;
+  --sidebar-primary: #191813;
+  --sidebar-primary-foreground: #f7f6f3;
+  --sidebar-accent: #e8e6e0;
+  --sidebar-accent-foreground: #191813;
+  --sidebar-border: rgba(22, 21, 18, 0.08);
   --sidebar-ring: #2f6fed;
+  /* Single permitted shadow: soft 24px ambient under drawer + palette. */
+  --shadow-overlay: 0 8px 24px rgba(22, 21, 18, 0.1);
 
   --status-prepared: #2f6fed;
   --status-suggestion: #0d9488;
@@ -89,35 +92,37 @@
   --status-held: #dc2626;
 }
 
-/* Dark theme (primary) — varia.global #0a0a0c */
+/* Dark theme — four elevation steps by lightness only.
+   page #0a0a0c · rails #111114 · cards #16161a · overlays #1c1c21 */
 .dark {
   color-scheme: dark;
   --background: #0a0a0c;
   --foreground: #ececee;
-  --card: #101014;
+  --card: #16161a;
   --card-foreground: #ececee;
-  --popover: #121217;
+  --popover: #1c1c21;
   --popover-foreground: #ececee;
   --primary: #ececee;
   --primary-foreground: #0a0a0c;
-  --secondary: #1a1a20;
+  --secondary: #1c1c21;
   --secondary-foreground: #ececee;
-  --muted: #16161b;
+  --muted: #16161a;
   --muted-foreground: #85858f;
-  --accent: #17171d;
+  --accent: #1c1c21;
   --accent-foreground: #ececee;
   --destructive: #ff6369;
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.1);
   --ring: #6ea0ff;
-  --sidebar: #0c0c0f;
+  --sidebar: #111114;
   --sidebar-foreground: #ececee;
   --sidebar-primary: #ececee;
   --sidebar-primary-foreground: #0a0a0c;
-  --sidebar-accent: #17171d;
+  --sidebar-accent: #1c1c21;
   --sidebar-accent-foreground: #ececee;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: #6ea0ff;
+  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
 
   --status-prepared: #6ea0ff;
   --status-suggestion: #45d0c2;
@@ -137,4 +142,56 @@
   html {
     font-variant-numeric: tabular-nums;
   }
+}
+
+@utility text-title {
+  /* Row/section titles: Geist Sans 15/22, -0.01em */
+  font-size: 15px;
+  line-height: 22px;
+  letter-spacing: -0.01em;
+}
+
+@utility text-meta {
+  /* Metadata: 12.5/18 at 60% foreground */
+  font-size: 12.5px;
+  line-height: 18px;
+  color: color-mix(in oklab, var(--foreground) 60%, transparent);
+}
+
+@utility shadow-overlay {
+  /* The only shadow in the app: drawer + command palette ambient. */
+  box-shadow: var(--shadow-overlay);
+}
+
+/* Approve: 1px accent line sweeps left→right while the row compresses. */
+@keyframes approve-sweep {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@utility animate-approve-sweep {
+  animation: approve-sweep 220ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  transform-origin: left;
+}
+
+/* Drawer: 280ms cubic-bezier(0.32, 0.72, 0, 1); content fades in behind it. */
+@utility ease-drawer {
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes drawer-content-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@utility animate-drawer-content {
+  animation: drawer-content-in 160ms ease-out 40ms backwards;
 }

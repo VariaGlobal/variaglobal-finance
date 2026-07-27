@@ -28,6 +28,7 @@ export const workItems: WorkItem[] = [
         resolves: true,
         confirm: {
           title: 'Approve pay cycle Jul 16–31',
+          confirmLabel: 'Approve and freeze cycle',
           records: [
             'Records pay cycle 2026-07-H2 as approved for The Matchbox.',
             'Freezes 14 person-lines totaling $13,402.25 payable.',

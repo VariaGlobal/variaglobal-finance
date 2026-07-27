@@ -54,21 +54,27 @@ export function ConfirmActionDialog({
         {item && action && (
           <>
             <DialogHeader>
-              <DialogTitle className="text-pretty">
+              <DialogTitle className="text-title font-semibold tracking-tight text-pretty">
                 {action.confirm?.title ?? action.label}
               </DialogTitle>
-              <DialogDescription>{item.meta.join(' · ')}</DialogDescription>
+              <DialogDescription className="text-meta">
+                {item.meta.join(' · ')}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="flex flex-col gap-4">
-              <ul className="flex flex-col gap-2 rounded-md border border-border bg-muted/40 px-3.5 py-3">
+              {/* Reads like a signed document: itemized, hairline-separated. */}
+              <ul className="flex flex-col border-t border-border">
                 {(action.confirm?.records ?? []).map((line, i) => (
                   <li
                     key={i}
-                    className="flex gap-2 text-[13px] leading-relaxed text-foreground"
+                    className="flex gap-2.5 border-b border-border py-2.5 text-[13px] leading-relaxed text-foreground"
                   >
-                    <span aria-hidden className="text-muted-foreground/60">
-                      —
+                    <span
+                      aria-hidden
+                      className="font-mono text-xs text-muted-foreground/60"
+                    >
+                      {String(i + 1).padStart(2, '0')}
                     </span>
                     {line}
                   </li>
@@ -117,7 +123,7 @@ export function ConfirmActionDialog({
                 Cancel
               </Button>
               <Button size="sm" disabled={!canConfirm} onClick={confirm}>
-                {action.label} and record
+                {action.confirm?.confirmLabel ?? `${action.label} and record`}
               </Button>
             </DialogFooter>
           </>

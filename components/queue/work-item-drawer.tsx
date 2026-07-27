@@ -28,10 +28,10 @@ export function WorkItemDrawer({ item, open, onOpenChange, onAction }: WorkItemD
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full gap-0 overflow-y-auto data-[side=right]:sm:max-w-md"
+        className="w-full gap-0 overflow-hidden data-[side=right]:sm:max-w-md"
       >
         {item && (
-          <>
+          <div className="animate-drawer-content flex min-h-0 flex-1 flex-col overflow-y-auto">
             <SheetHeader className="gap-2 pb-4">
               <div className="flex items-center gap-2">
                 <StatusBadge status={item.status} />
@@ -39,42 +39,44 @@ export function WorkItemDrawer({ item, open, onOpenChange, onAction }: WorkItemD
                   {item.createdAt}
                 </span>
               </div>
-              <SheetTitle className="text-base leading-snug text-pretty">
+              <SheetTitle className="text-title leading-snug text-pretty">
                 {item.title}
               </SheetTitle>
-              <SheetDescription>{item.meta.join(' · ')}</SheetDescription>
+              <SheetDescription className="text-meta">
+                {item.meta.join(' · ')}
+              </SheetDescription>
             </SheetHeader>
 
             <div className="flex flex-col gap-6 px-4 pb-4">
-              {/* Calculation trace */}
+              {/* Calculation trace — a receipt line, not a code block */}
               {item.trace && (
                 <section aria-label="Calculation trace">
                   <h4 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     Trace
                   </h4>
-                  <p className="rounded-md border border-border bg-muted/50 px-3 py-2.5 font-mono text-xs leading-relaxed tabular-nums text-foreground">
+                  <p className="border-t border-b border-border py-2.5 font-mono text-xs leading-relaxed tabular-nums text-foreground">
                     {item.trace}
                   </p>
                 </section>
               )}
 
-              {/* AI suggestion */}
+              {/* AI suggestion — state-bearing accent, no box */}
               {item.aiSuggestion && (
                 <section aria-label="AI suggestion">
                   <h4 className="mb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     Suggestion
                   </h4>
-                  <div className="rounded-md border border-suggestion/20 bg-suggestion/5 px-3 py-2.5">
+                  <div className="flex flex-col gap-1 border-l-2 border-suggestion/40 pl-3">
                     <p className="flex items-center gap-1.5 text-xs font-medium text-suggestion">
                       <SparklesIcon className="size-3" />
                       <span className="font-mono tabular-nums">
                         {item.aiSuggestion.confidenceDisplay} confidence
                       </span>
                     </p>
-                    <p className="mt-1 font-mono text-xs leading-relaxed tabular-nums text-foreground">
+                    <p className="font-mono text-xs leading-relaxed tabular-nums text-foreground">
                       {item.aiSuggestion.summary}
                     </p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {item.aiSuggestion.source}
                     </p>
                   </div>
@@ -157,7 +159,7 @@ export function WorkItemDrawer({ item, open, onOpenChange, onAction }: WorkItemD
                 </Button>
               ))}
             </SheetFooter>
-          </>
+          </div>
         )}
       </SheetContent>
     </Sheet>
