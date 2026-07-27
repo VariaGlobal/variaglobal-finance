@@ -16,6 +16,7 @@ import type {
   FilterChip,
   WorkItem,
   WorkItemAction,
+  WorkItemType,
 } from '@/lib/types'
 
 interface QueueScreenProps {
@@ -23,6 +24,8 @@ interface QueueScreenProps {
   entity: Entity
   chips: FilterChip[]
   user: AppUser
+  /** Restrict to these work-item types (sub-tab filter). Omit for all. */
+  typeFilter?: WorkItemType[]
 }
 
 function matchesChips(item: WorkItem, chips: FilterChip[]): boolean {
@@ -45,7 +48,13 @@ function matchesChips(item: WorkItem, chips: FilterChip[]): boolean {
   return true
 }
 
-export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
+export function QueueScreen({
+  items,
+  entity,
+  chips,
+  user,
+  typeFilter,
+}: QueueScreenProps) {
   const [resolvedIds, setResolvedIds] = useState<string[]>([])
   const [exitingIds, setExitingIds] = useState<string[]>([])
   const [density, setDensity] = useState<QueueDensity>('comfortable')
@@ -60,11 +69,12 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
   const visibleItems = useMemo(() => {
     return items
       .filter((item) => !resolvedIds.includes(item.id))
+      .filter((item) => (typeFilter ? typeFilter.includes(item.type) : true))
       .filter((item) =>
         entity.id === 'varia-global' ? true : item.tags.entity === entity.id,
       )
       .filter((item) => matchesChips(item, chips))
-  }, [items, resolvedIds, entity, chips])
+  }, [items, resolvedIds, entity, chips, typeFilter])
 
   const clampedIndex = Math.min(selectedIndex, Math.max(visibleItems.length - 1, 0))
   const selectedItem = visibleItems[clampedIndex] ?? null
@@ -176,7 +186,11 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
       />
 
       {visibleItems.length === 0 ? (
-        <QueueEmptyState filtered={chips.length > 0 || entity.id !== 'varia-global'} />
+        <QueueEmptyState
+          filtered={
+            chips.length > 0 || entity.id !== 'varia-global' || Boolean(typeFilter)
+          }
+        />
       ) : (
         <div role="list" aria-label="Work items">
           {visibleItems.map((item, index) => {

@@ -8,6 +8,8 @@ import { UsersTab } from '@/components/settings/users-tab'
 import { PromptsTab } from '@/components/settings/prompts-tab'
 import { ArchitectureTab } from '@/components/settings/architecture-tab'
 import { SystemHealthTab } from '@/components/settings/system-health-tab'
+import { AdminTab } from '@/components/settings/admin-tab'
+import { AuditTab } from '@/components/settings/audit-tab'
 
 const tabs = [
   { id: 'integrations', number: '01', label: 'Integrations', component: IntegrationsTab },
@@ -16,6 +18,8 @@ const tabs = [
   { id: 'prompts', number: '04', label: 'Prompt library', component: PromptsTab },
   { id: 'architecture', number: '05', label: 'Architecture', component: ArchitectureTab },
   { id: 'health', number: '06', label: 'System health', component: SystemHealthTab },
+  { id: 'admin', number: '07', label: 'Admin', component: AdminTab },
+  { id: 'audit', number: '08', label: 'Audit', component: AuditTab },
 ] as const
 
 type TabId = (typeof tabs)[number]['id']
