@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Kbd } from '@/components/ui/kbd'
-import { Skeleton } from '@/components/ui/skeleton'
 import { QueueRow } from '@/components/queue/queue-row'
 import { QueueEmptyState } from '@/components/queue/queue-empty-state'
 import { WorkItemDrawer } from '@/components/queue/work-item-drawer'
@@ -44,7 +44,6 @@ function matchesChips(item: WorkItem, chips: FilterChip[]): boolean {
 }
 
 export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
-  const [loading, setLoading] = useState(true)
   const [resolvedIds, setResolvedIds] = useState<string[]>([])
   const [exitingIds, setExitingIds] = useState<string[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -54,11 +53,6 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
     action: WorkItemAction
   } | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 600)
-    return () => clearTimeout(t)
-  }, [])
 
   const visibleItems = useMemo(() => {
     return items
@@ -71,6 +65,13 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
 
   const clampedIndex = Math.min(selectedIndex, Math.max(visibleItems.length - 1, 0))
   const selectedItem = visibleItems[clampedIndex] ?? null
+
+  // Keep the keyboard-selected row visible while triaging with J/K.
+  useEffect(() => {
+    listRef.current
+      ?.querySelector('[data-selected]')
+      ?.scrollIntoView({ block: 'nearest' })
+  }, [clampedIndex])
 
   const runAction = useCallback(
     (item: WorkItem, action: WorkItemAction) => {
@@ -94,7 +95,7 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
       setTimeout(() => {
         setResolvedIds((ids) => [...ids, item.id])
         setExitingIds((ids) => ids.filter((id) => id !== item.id))
-      }, 250)
+      }, 280)
       toast(`${action.label} recorded`, {
         description: reason
           ? `${item.title} · reason: ${reason} · by ${user.name}`
@@ -163,26 +164,6 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [visibleItems.length, selectedItem, drawerOpen, pendingAction, user])
 
-  if (loading) {
-    return (
-      <div className="flex flex-col" aria-busy="true" aria-label="Loading queue">
-        <QueueHeader count={null} />
-        <div className="flex flex-col gap-px">
-          {[0, 1, 2, 3, 4].map((i) => (
-            <div key={i} className="flex items-start gap-4 border-b border-border px-5 py-4">
-              <Skeleton className="mt-1 size-4 rounded" />
-              <div className="flex flex-1 flex-col gap-2">
-                <Skeleton className="h-4 w-2/5" />
-                <Skeleton className="h-3 w-3/5" />
-              </div>
-              <Skeleton className="h-7 w-36 rounded-md" />
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="flex min-h-full flex-col" ref={listRef}>
       <QueueHeader count={visibleItems.length} />
@@ -191,23 +172,35 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
         <QueueEmptyState filtered={chips.length > 0 || entity.id !== 'varia-global'} />
       ) : (
         <div role="list" aria-label="Work items">
-          {visibleItems.map((item, index) => (
-            <div role="listitem" key={item.id}>
-              <QueueRow
-                item={item}
-                selected={index === clampedIndex}
-                exiting={exitingIds.includes(item.id)}
-                onOpen={() => {
-                  setSelectedIndex(index)
-                  setDrawerOpen(true)
-                }}
-                onAction={(action) => {
-                  setSelectedIndex(index)
-                  runAction(item, action)
-                }}
-              />
-            </div>
-          ))}
+          {visibleItems.map((item, index) => {
+            const exiting = exitingIds.includes(item.id)
+            return (
+              <div
+                role="listitem"
+                key={item.id}
+                className={cn(
+                  'grid transition-[grid-template-rows] duration-250 ease-out',
+                  exiting ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]',
+                )}
+              >
+                <div className="overflow-hidden">
+                  <QueueRow
+                    item={item}
+                    selected={index === clampedIndex}
+                    exiting={exiting}
+                    onOpen={() => {
+                      setSelectedIndex(index)
+                      setDrawerOpen(true)
+                    }}
+                    onAction={(action) => {
+                      setSelectedIndex(index)
+                      runAction(item, action)
+                    }}
+                  />
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
@@ -238,16 +231,14 @@ export function QueueScreen({ items, entity, chips, user }: QueueScreenProps) {
   )
 }
 
-function QueueHeader({ count }: { count: number | null }) {
+function QueueHeader({ count }: { count: number }) {
   return (
     <div className="flex items-center justify-between px-5 pt-6 pb-4">
       <div className="flex items-baseline gap-3">
         <h1 className="text-lg font-medium tracking-tight text-foreground">Queue</h1>
-        {count !== null && (
-          <span className="font-mono text-xs tabular-nums text-muted-foreground">
-            {count} {count === 1 ? 'item' : 'items'}
-          </span>
-        )}
+        <span className="font-mono text-xs tabular-nums text-muted-foreground">
+          {count} {count === 1 ? 'item' : 'items'}
+        </span>
       </div>
       <p className="hidden items-center gap-2 text-xs text-muted-foreground md:flex">
         <Kbd>J</Kbd>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronRightIcon } from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 const sections = [
@@ -21,6 +22,12 @@ const recordsHubs = [
   'Time',
   'Documents',
 ] as const
+
+function notBuiltYet(section: string) {
+  toast(`${section} ships in a later phase`, {
+    description: 'The Queue is the working surface for this phase.',
+  })
+}
 
 export function LeftRail({ activeSection = 'queue' }: { activeSection?: string }) {
   const [recordsOpen, setRecordsOpen] = useState(false)
@@ -47,7 +54,11 @@ export function LeftRail({ activeSection = 'queue' }: { activeSection?: string }
                 aria-current={isActive ? 'page' : undefined}
                 aria-expanded={isRecords ? recordsOpen : undefined}
                 onClick={() => {
-                  if (isRecords) setRecordsOpen((o) => !o)
+                  if (isRecords) {
+                    setRecordsOpen((o) => !o)
+                  } else if (!isActive) {
+                    notBuiltYet(section.label)
+                  }
                 }}
                 className={cn(
                   'group flex w-full items-center gap-3 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
@@ -63,26 +74,35 @@ export function LeftRail({ activeSection = 'queue' }: { activeSection?: string }
                 {isRecords && (
                   <ChevronRightIcon
                     className={cn(
-                      'size-3.5 text-muted-foreground/50 transition-transform duration-150',
+                      'size-3.5 text-muted-foreground/50 transition-transform duration-200 ease-out',
                       recordsOpen && 'rotate-90',
                     )}
                   />
                 )}
               </button>
 
-              {isRecords && recordsOpen && (
-                <ul className="mt-0.5 flex flex-col gap-0.5 pb-1 pl-9">
-                  {recordsHubs.map((hub) => (
-                    <li key={hub}>
-                      <button
-                        type="button"
-                        className="w-full rounded-md px-2 py-1 text-left text-[13px] text-muted-foreground transition-colors duration-150 outline-none hover:bg-sidebar-accent/60 hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
-                      >
-                        {hub}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+              {isRecords && (
+                <div
+                  className={cn(
+                    'grid transition-[grid-template-rows] duration-200 ease-out',
+                    recordsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                  )}
+                >
+                  <ul className="flex flex-col gap-0.5 overflow-hidden pl-9">
+                    {recordsHubs.map((hub) => (
+                      <li key={hub} className="first:mt-0.5 last:mb-1">
+                        <button
+                          type="button"
+                          tabIndex={recordsOpen ? 0 : -1}
+                          onClick={() => notBuiltYet(`Records · ${hub}`)}
+                          className="w-full rounded-md px-2 py-1 text-left text-[13px] text-muted-foreground transition-colors duration-150 outline-none hover:bg-sidebar-accent/60 hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-ring/50"
+                        >
+                          {hub}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </li>
           )

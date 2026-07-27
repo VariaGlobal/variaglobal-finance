@@ -7,9 +7,11 @@ import {
   InboxIcon,
   MoonIcon,
   ShieldIcon,
+  SunIcon,
   UsersIcon,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { toast } from 'sonner'
 import {
   Command,
   CommandDialog,
@@ -43,6 +45,12 @@ export function CommandPalette({
     onOpenChange(false)
   }
 
+  function notBuiltYet(section: string) {
+    toast(`${section} ships in a later phase`, {
+      description: 'The Queue is the working surface for this phase.',
+    })
+  }
+
   return (
     <CommandDialog
       open={open}
@@ -59,19 +67,19 @@ export function CommandPalette({
             <InboxIcon />
             01 Queue
           </CommandItem>
-          <CommandItem onSelect={() => run(() => {})}>
+          <CommandItem onSelect={() => run(() => notBuiltYet('Records'))}>
             <UsersIcon />
             02 Records
           </CommandItem>
-          <CommandItem onSelect={() => run(() => {})}>
+          <CommandItem onSelect={() => run(() => notBuiltYet('Reports'))}>
             <BanknoteIcon />
             03 Reports
           </CommandItem>
-          <CommandItem onSelect={() => run(() => {})}>
+          <CommandItem onSelect={() => run(() => notBuiltYet('Admin'))}>
             <BuildingIcon />
             04 Admin
           </CommandItem>
-          <CommandItem onSelect={() => run(() => {})}>
+          <CommandItem onSelect={() => run(() => notBuiltYet('Audit'))}>
             <ShieldIcon />
             05 Audit
           </CommandItem>
@@ -107,8 +115,8 @@ export function CommandPalette({
               run(() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark'))
             }
           >
-            <MoonIcon />
-            Toggle theme
+            {resolvedTheme === 'dark' ? <SunIcon /> : <MoonIcon />}
+            {resolvedTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
           </CommandItem>
           <CommandItem onSelect={() => run(() => onChipsChange([]))}>
             <BookmarkIcon />

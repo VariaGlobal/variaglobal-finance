@@ -42,6 +42,12 @@ export function ConfirmActionDialog({
     onOpenChange(next)
   }
 
+  function confirm() {
+    if (!canConfirm) return
+    onConfirm(needsReason ? reason.trim() : undefined)
+    setReason('')
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -81,7 +87,19 @@ export function ConfirmActionDialog({
                     id="action-reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (
+                        e.key === 'Enter' &&
+                        (e.metaKey || e.ctrlKey) &&
+                        !e.nativeEvent.isComposing &&
+                        e.keyCode !== 229
+                      ) {
+                        e.preventDefault()
+                        confirm()
+                      }
+                    }}
                     rows={2}
+                    autoFocus
                     placeholder="Why is this being waived?"
                     className="w-full resize-none rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground transition-colors duration-150 outline-none placeholder:text-muted-foreground/60 focus:border-ring focus:ring-2 focus:ring-ring/30"
                   />
@@ -98,14 +116,7 @@ export function ConfirmActionDialog({
               <Button variant="outline" size="sm" onClick={() => handleOpenChange(false)}>
                 Cancel
               </Button>
-              <Button
-                size="sm"
-                disabled={!canConfirm}
-                onClick={() => {
-                  onConfirm(needsReason ? reason.trim() : undefined)
-                  setReason('')
-                }}
-              >
+              <Button size="sm" disabled={!canConfirm} onClick={confirm}>
                 {action.label} and record
               </Button>
             </DialogFooter>
