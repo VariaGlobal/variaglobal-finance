@@ -2,7 +2,7 @@
 
 import { RecordHover } from '@/components/records/record-hover'
 import { HubHeader, LifecycleChip, RecordsEmpty, TableHead } from '@/components/records/records-bits'
-import type { Client, Invoice } from '@/lib/types'
+import type { Counterparty, Invoice } from '@/lib/types'
 import type { PaymentDisplay } from '@/lib/fixtures/records/billing'
 
 const invoiceGrid = 'grid-cols-[110px_minmax(140px,1.2fr)_minmax(200px,2fr)_120px_80px_110px]'
@@ -11,11 +11,11 @@ const paymentGrid = 'grid-cols-[110px_120px_minmax(140px,1fr)_minmax(240px,2fr)]
 export function BillingHub({
   invoices,
   payments,
-  clients,
+  counterparties,
 }: {
   invoices: Invoice[]
   payments: PaymentDisplay[]
-  clients: Client[]
+  counterparties: Counterparty[]
 }) {
   if (invoices.length === 0) {
     return (
@@ -26,7 +26,7 @@ export function BillingHub({
     )
   }
 
-  const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? id
+  const clientName = (id: string) => counterparties.find((c) => c.id === id)?.name ?? id
 
   return (
     <section aria-label="Billing">

@@ -7,8 +7,8 @@ import { AppShell } from '@/components/shell/app-shell'
 import { Button } from '@/components/ui/button'
 import { BankingHub } from '@/components/records/banking-hub'
 import { BillingHub } from '@/components/records/billing-hub'
-import { ClientProfile } from '@/components/records/client-profile'
-import { ClientsHub } from '@/components/records/clients-hub'
+import { CounterpartiesHub } from '@/components/records/counterparties-hub'
+import { CounterpartyProfile } from '@/components/records/counterparty-profile'
 import { CycleDetail } from '@/components/records/cycle-detail'
 import { CyclesHub } from '@/components/records/cycles-hub'
 import { DocumentPreviewDrawer } from '@/components/records/document-preview-drawer'
@@ -21,13 +21,13 @@ import { invoices, payments } from '@/lib/fixtures/records/billing'
 import { cyclesNewestFirst } from '@/lib/fixtures/records/cycles'
 import { documents } from '@/lib/fixtures/records/documents'
 import { recordPeople } from '@/lib/fixtures/records/people'
-import { clients } from '@/lib/fixtures/clients'
+import { counterparties } from '@/lib/fixtures/counterparties'
 import { entities, users } from '@/lib/fixtures/workspace'
 import type { AppUser, Entity, FilterChip } from '@/lib/types'
 
 const recordsTabs = [
   { id: 'people', number: '01', label: 'People' },
-  { id: 'clients', number: '02', label: 'Clients' },
+  { id: 'counterparties', number: '02', label: 'Counterparties' },
   { id: 'cycles', number: '03', label: 'Pay cycles' },
   { id: 'banking', number: '04', label: 'Banking' },
   { id: 'billing', number: '05', label: 'Billing' },
@@ -46,7 +46,7 @@ function RecordsPageInner() {
   const [activeTab, setActiveTab] = useState<string>('people')
   const [openCycleId, setOpenCycleId] = useState<string | null>(null)
   const [openPersonId, setOpenPersonId] = useState<string | null>(null)
-  const [openClientId, setOpenClientId] = useState<string | null>(null)
+  const [openCounterpartyId, setOpenCounterpartyId] = useState<string | null>(null)
   const [openDocumentId, setOpenDocumentId] = useState<string | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
 
@@ -58,7 +58,7 @@ function RecordsPageInner() {
     setActiveTab(tab)
     setOpenCycleId(tab === 'cycles' ? openId : null)
     setOpenPersonId(tab === 'people' ? openId : null)
-    setOpenClientId(tab === 'clients' ? openId : null)
+    setOpenCounterpartyId(tab === 'counterparties' ? openId : null)
     setOpenDocumentId(tab === 'documents' ? openId : null)
     // Consume the params so in-app navigation stays clean.
     router.replace('/records', { scroll: false })
@@ -70,8 +70,8 @@ function RecordsPageInner() {
   const openPerson = openPersonId
     ? (recordPeople.find((p) => p.id === openPersonId) ?? null)
     : null
-  const openClient = openClientId
-    ? (clients.find((c) => c.id === openClientId) ?? null)
+  const openCounterparty = openCounterpartyId
+    ? (counterparties.find((c) => c.id === openCounterpartyId) ?? null)
     : null
   const openDocument = openDocumentId
     ? (documents.find((d) => d.id === openDocumentId) ?? null)
@@ -95,14 +95,14 @@ function RecordsPageInner() {
     setActiveTab(tab)
     setOpenCycleId(tab === 'cycles' ? (openId ?? null) : null)
     setOpenPersonId(tab === 'people' ? (openId ?? null) : null)
-    setOpenClientId(tab === 'clients' ? (openId ?? null) : null)
+    setOpenCounterpartyId(tab === 'counterparties' ? (openId ?? null) : null)
   }
 
   function handleTabChange(id: string) {
     setActiveTab(id)
     setOpenCycleId(null)
     setOpenPersonId(null)
-    setOpenClientId(null)
+    setOpenCounterpartyId(null)
   }
 
   return (
@@ -146,11 +146,17 @@ function RecordsPageInner() {
               onOpenPerson={handleOpenPerson}
             />
           ))}
-        {activeTab === 'clients' &&
-          (openClient ? (
-            <ClientProfile client={openClient} onBack={() => setOpenClientId(null)} />
+        {activeTab === 'counterparties' &&
+          (openCounterparty ? (
+            <CounterpartyProfile
+              counterparty={openCounterparty}
+              onBack={() => setOpenCounterpartyId(null)}
+            />
           ) : (
-            <ClientsHub clients={clients} onOpenClient={setOpenClientId} />
+            <CounterpartiesHub
+              counterparties={counterparties}
+              onOpenCounterparty={setOpenCounterpartyId}
+            />
           ))}
         {activeTab === 'cycles' &&
           (openCycle ? (
@@ -164,7 +170,7 @@ function RecordsPageInner() {
           ))}
         {activeTab === 'banking' && <BankingHub transactions={bankTransactions} />}
         {activeTab === 'billing' && (
-          <BillingHub invoices={invoices} payments={payments} clients={clients} />
+          <BillingHub invoices={invoices} payments={payments} counterparties={counterparties} />
         )}
         {activeTab === 'documents' && (
           <DocumentsHub documents={documents} onOpenDocument={setOpenDocumentId} />

@@ -135,7 +135,7 @@ export const evidenceLabels: Record<string, { label: string; tab: string; openId
   'bt-jul15-payroll': { label: 'Bank row · payroll Jun 16–30', tab: 'banking' },
   'bt-jul21-arsalan': { label: 'Bank row · Arsalan $600.00', tab: 'banking' },
   'bt-jul10-im': { label: 'Bank row · IM settlement', tab: 'banking' },
-  'ct-ecom-retainer': { label: 'eCommission · retainer', tab: 'clients', openId: 'ecommission' },
-  'ct-ecom-hubspot': { label: 'eCommission · HubSpot migration', tab: 'clients', openId: 'ecommission' },
+  'ct-ecom-retainer': { label: 'eCommission · retainer', tab: 'counterparties', openId: 'ecommission' },
+  'ct-ecom-hubspot': { label: 'eCommission · HubSpot migration', tab: 'counterparties', openId: 'ecommission' },
   'tess-fazio': { label: 'Tess Fazio', tab: 'people', openId: 'tess-fazio' },
 }

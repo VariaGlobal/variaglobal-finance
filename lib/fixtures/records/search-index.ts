@@ -10,7 +10,8 @@ import { invoices, payments } from '@/lib/fixtures/records/billing'
 import { cycles } from '@/lib/fixtures/records/cycles'
 import { documents } from '@/lib/fixtures/records/documents'
 import { recordPeople } from '@/lib/fixtures/records/people'
-import { clients } from '@/lib/fixtures/clients'
+import { counterparties } from '@/lib/fixtures/counterparties'
+import { entityName } from '@/lib/fixtures/workspace'
 import { realCycleSpecs } from '@/lib/fixtures/real-cycles'
 
 export interface SearchEntry {
@@ -18,7 +19,7 @@ export interface SearchEntry {
   id: string
   /** Record id used for the hover card. */
   summaryId: string
-  hub: 'People' | 'Clients' | 'Pay cycles' | 'Banking' | 'Billing' | 'Documents'
+  hub: 'People' | 'Counterparties' | 'Pay cycles' | 'Banking' | 'Billing' | 'Documents'
   title: string
   /** Muted detail rendered after the title. */
   detail?: string
@@ -72,19 +73,29 @@ function buildIndex(): SearchEntry[] {
     })
   }
 
-  /* Clients */
-  for (const client of clients) {
-    const contractText = client.contracts
+  /* Counterparties — searchable by name, alias, role, entity, and stream */
+  for (const cp of counterparties) {
+    const contractText = cp.contracts
       .flatMap((c) => [c.name, ...c.terms.map((t) => t.summary), ...c.rules.map((r) => r.label)])
       .join(' ')
+    const relationshipText = cp.relationships
+      .map((r) => `${r.role} ${entityName(r.entity)} ${r.streamType}`)
+      .join(' ')
     entries.push({
-      id: `client-${client.id}`,
-      summaryId: client.id,
-      hub: 'Clients',
-      title: client.name,
-      detail: `${client.contracts.length} contract${client.contracts.length === 1 ? '' : 's'}`,
-      keywords: hay(client.name, contractText, 'client contract'),
-      target: { tab: 'clients', openId: client.id },
+      id: `counterparty-${cp.id}`,
+      summaryId: cp.id,
+      hub: 'Counterparties',
+      title: cp.name,
+      detail: cp.roles.join(' · '),
+      keywords: hay(
+        cp.name,
+        cp.aliases?.join(' '),
+        cp.roles.join(' '),
+        relationshipText,
+        contractText,
+        'counterparty',
+      ),
+      target: { tab: 'counterparties', openId: cp.id },
     })
   }
 
@@ -180,7 +191,7 @@ function buildIndex(): SearchEntry[] {
 
   /* Billing — invoices + payments */
   for (const invoice of invoices) {
-    const client = clients.find((c) => c.id === invoice.clientId)
+    const client = counterparties.find((c) => c.id === invoice.clientId)
     entries.push({
       id: `invoice-${invoice.id}`,
       summaryId: invoice.id,
@@ -239,7 +250,7 @@ export const searchIndex: SearchEntry[] = buildIndex()
 
 const HUB_ORDER: SearchEntry['hub'][] = [
   'People',
-  'Clients',
+  'Counterparties',
   'Pay cycles',
   'Banking',
   'Billing',
