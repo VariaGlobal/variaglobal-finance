@@ -164,8 +164,8 @@ export function TopNav({
               }
             />
             <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuLabel>Entity</DropdownMenuLabel>
               <DropdownMenuGroup>
+                <DropdownMenuLabel>Entity</DropdownMenuLabel>
                 {entities.map((e) => (
                   <DropdownMenuItem key={e.id} onClick={() => onEntityChange(e)}>
                     <span className="flex-1">{e.name}</span>
@@ -210,8 +210,8 @@ export function TopNav({
               }
             />
             <DropdownMenuContent align="end" className="w-60">
-              <DropdownMenuLabel>Acting as</DropdownMenuLabel>
               <DropdownMenuGroup>
+                <DropdownMenuLabel>Acting as</DropdownMenuLabel>
                 {users.map((u) => (
                   <DropdownMenuItem key={u.id} onClick={() => onUserChange(u)}>
                     <span className="flex-1">{u.name}</span>
@@ -305,8 +305,8 @@ export function TopNav({
                 }
               />
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Saved views</DropdownMenuLabel>
                 <DropdownMenuGroup>
+                  <DropdownMenuLabel>Saved views</DropdownMenuLabel>
                   {savedViews.map((view) => (
                     <DropdownMenuItem
                       key={view.id}
