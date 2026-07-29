@@ -13,9 +13,11 @@ interface RecordHoverProps {
 }
 
 /**
- * Instant hover summary for any record reference — person, client, cycle,
- * invoice, or document. Facts come synchronously from fixtures; there is
- * no loading state by design.
+ * Instant hover summary for any record reference. Strict spec:
+ * header = record type + name; max 4 rows of muted label + tabular
+ * value + as-of date; footer = "Open record →". Matched payments show
+ * the linked chain. No paragraphs, no loading states — everything
+ * renders synchronously from fixtures.
  */
 export function RecordHover({ recordId, children, className, onClick }: RecordHoverProps) {
   const summary = summaries[recordId]
@@ -40,26 +42,55 @@ export function RecordHover({ recordId, children, className, onClick }: RecordHo
   return (
     <HoverCard delay={0} closeDelay={80}>
       <HoverCardTrigger render={trigger} />
-      <HoverCardContent side="bottom" align="start" className="w-72 p-0">
-        <div className="border-b border-border px-3 py-2.5">
-          <p className="text-sm font-medium text-foreground">{summary.title}</p>
-          <p className="text-meta mt-0.5">{summary.meta}</p>
+      <HoverCardContent side="bottom" align="start" className="w-80 p-0">
+        {/* Header: record type + name */}
+        <div className="flex items-baseline gap-2 border-b border-border px-3 py-2">
+          <span className="text-[11px] tracking-wide text-muted-foreground/70 uppercase">
+            {summary.type}
+          </span>
+          <span className="truncate text-sm font-medium text-foreground">{summary.title}</span>
         </div>
+
+        {/* Rows: muted label · tabular value · as-of date. Max 4. */}
         <dl className="flex flex-col gap-1.5 px-3 py-2.5">
-          {summary.facts.map((fact) => (
-            <div key={fact.label} className="flex items-baseline justify-between gap-3">
-              <dt className="shrink-0 text-xs text-muted-foreground">{fact.label}</dt>
-              <dd
-                className={cn(
-                  'text-right text-xs text-foreground',
-                  fact.mono && 'font-mono tabular-nums',
+          {summary.rows.slice(0, 4).map((row) => (
+            <div key={row.label} className="flex items-baseline gap-3">
+              <dt className="w-20 shrink-0 text-xs text-muted-foreground">{row.label}</dt>
+              <dd className="min-w-0 flex-1 text-right">
+                <span className="font-mono text-xs tabular-nums text-foreground">
+                  {row.value}
+                </span>
+                {row.asOf && (
+                  <span className="ml-1.5 text-[11px] text-muted-foreground/70">
+                    {row.asOf}
+                  </span>
                 )}
-              >
-                {fact.value}
               </dd>
             </div>
           ))}
         </dl>
+
+        {/* Linked chain for matched payment records */}
+        {summary.chain && (
+          <p className="border-t border-border px-3 py-2 font-mono text-[11px] tabular-nums text-muted-foreground">
+            {summary.chain}
+          </p>
+        )}
+
+        {/* Footer */}
+        <div className="border-t border-border px-3 py-2">
+          {onClick ? (
+            <button
+              type="button"
+              onClick={onClick}
+              className="text-xs text-foreground/70 transition-colors duration-150 hover:text-foreground"
+            >
+              {'Open record →'}
+            </button>
+          ) : (
+            <span className="text-xs text-muted-foreground/60">{'Open record →'}</span>
+          )}
+        </div>
       </HoverCardContent>
     </HoverCard>
   )

@@ -55,3 +55,87 @@ export const documents: DocumentRef[] = [
     evidences: ['2026-06-H2', '2026-07-H1'],
   },
 ]
+
+/* ── Preview drawer details ─────────────────────────────────────────── */
+
+export interface StoredAnalysis {
+  model: string
+  date: string
+  /** Exactly 4 summary lines — stored, never auto-run. */
+  lines: [string, string, string, string]
+}
+
+export interface DocumentDetails {
+  uploadedBy: string
+  previewKind: 'pdf' | 'csv'
+  analysis?: StoredAnalysis
+}
+
+export const documentDetails: Record<string, DocumentDetails> = {
+  'doc-payout-tracker': {
+    uploadedBy: 'Sydney Allen',
+    previewKind: 'csv',
+    analysis: {
+      model: 'claude-sonnet-4-5',
+      date: 'Jul 27, 14:32',
+      lines: [
+        'Two pay cycles extracted cell-by-cell: Jun 16–30 and Jul 1–15.',
+        'Jun 16–30 totals $11,344.92 across 12 people; Tess Fazio routed via IM.',
+        'Jul 1–15 totals $14,953.08 pending RUL-002 on Arsalan (3h IM overlap).',
+        'Hours reconcile to the minute against Asana exports — no variances.',
+      ],
+    },
+  },
+  'doc-mercury-jun': {
+    uploadedBy: 'Sydney Allen',
+    previewKind: 'pdf',
+    analysis: {
+      model: 'claude-sonnet-4-5',
+      date: 'Jul 2, 09:18',
+      lines: [
+        'Mercury June statement for The Matchbox checking, 38 transactions.',
+        'Payroll run Jun 16–30 debit of $10,744.92 matched to cycle records.',
+        'Arsalan $600.00 catch-up (Jun 1–15, 6h) identified by reference id.',
+        'All credits matched to invoices except HubSpot payout (fees pending).',
+      ],
+    },
+  },
+  'doc-ecom-msa': {
+    uploadedBy: 'Ani Bisaria',
+    previewKind: 'pdf',
+  },
+  'doc-im-invoice-jun': {
+    uploadedBy: 'Sydney Allen',
+    previewKind: 'pdf',
+    analysis: {
+      model: 'claude-sonnet-4-5',
+      date: 'Jul 8, 11:05',
+      lines: [
+        'Interrupt Media vendor invoice for June: Tess Fazio, 11h at $125.00/h.',
+        'Total $1,375.00 matches the Jun 16–30 cycle vendor accrual exactly.',
+        'Settled via Mercury debit posted Jul 10 — chain fully linked.',
+        'No Arsalan hours on this invoice; RUL-002 overlap remains open.',
+      ],
+    },
+  },
+  'doc-tess-nda': {
+    uploadedBy: 'Ani Bisaria',
+    previewKind: 'pdf',
+  },
+  'doc-finance-raw': {
+    uploadedBy: 'Sydney Allen',
+    previewKind: 'csv',
+  },
+}
+
+/** Human labels for record ids a document evidences — backlink targets. */
+export const evidenceLabels: Record<string, { label: string; tab: string; openId?: string }> = {
+  '2026-06-H2': { label: 'Pay cycle Jun 16–30', tab: 'cycles', openId: '2026-06-H2' },
+  '2026-07-H1': { label: 'Pay cycle Jul 1–15', tab: 'cycles', openId: '2026-07-H1' },
+  'bt-jul15-payroll': { label: 'Bank row · payroll Jun 16–30', tab: 'banking' },
+  'bt-jul21-arsalan': { label: 'Bank row · Arsalan $600.00', tab: 'banking' },
+  'bt-jul10-im': { label: 'Bank row · IM settlement', tab: 'banking' },
+  'ct-ecom-retainer': { label: 'eCommission · retainer', tab: 'clients', openId: 'ecommission' },
+  'ct-ecom-hubspot': { label: 'eCommission · HubSpot migration', tab: 'clients', openId: 'ecommission' },
+  'tess-fazio': { label: 'Tess Fazio', tab: 'people', openId: 'tess-fazio' },
+}
