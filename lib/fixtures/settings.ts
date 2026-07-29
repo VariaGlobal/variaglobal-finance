@@ -358,3 +358,70 @@ export const stalenessRules: StalenessRule[] = [
   { id: 's3', source: 'Asana time entries', threshold: '> 24 hours stale', notify: 'Sydney', enabled: true },
   { id: 's4', source: 'PandaDoc contracts', threshold: '> 7 days stale', notify: 'Ani · Sydney', enabled: false },
 ]
+
+/* ── 07 Admin ────────────────────────────────────────────────────── */
+
+export interface EntityRecord {
+  id: string
+  name: string
+  kind: string
+  status: 'active' | 'dormant'
+  accounts: string // banking scope summary
+}
+
+export const entityRegistry: EntityRecord[] = [
+  { id: 'varia-global', name: 'Varia Global', kind: 'Holding · consolidated view', status: 'active', accounts: 'No direct accounts' },
+  { id: 'the-matchbox', name: 'The Matchbox', kind: 'Operating LLC', status: 'active', accounts: 'Mercury checking · savings' },
+  { id: 'spyll-world', name: 'Spyll World', kind: 'Operating LLC', status: 'active', accounts: 'Mercury checking' },
+  { id: 'the-ad-spend', name: 'The Ad Spend', kind: 'Media pass-through', status: 'active', accounts: 'Client-funded cards' },
+]
+
+export interface ApprovalThreshold {
+  id: string
+  scope: string
+  rule: string
+  approver: string
+}
+
+export const approvalThresholds: ApprovalThreshold[] = [
+  { id: 't1', scope: 'Pay cycles', rule: 'Any amount — always confirmed', approver: 'Ani' },
+  { id: 't2', scope: 'Vendor payments', rule: '≥ $1,000.00 requires confirm', approver: 'Ani' },
+  { id: 't3', scope: 'Bank match accept', rule: 'Confidence < 90% requires review', approver: 'Sydney' },
+  { id: 't4', scope: 'Rule changes', rule: 'Propose → confirm, never direct', approver: 'Sydney → Ani' },
+]
+
+export interface RetentionRule {
+  id: string
+  record: string
+  policy: string
+}
+
+export const retentionRules: RetentionRule[] = [
+  { id: 'ret1', record: 'Financial records & audit trail', policy: 'Retained indefinitely — never purged' },
+  { id: 'ret2', record: 'Source documents (statements, contracts)', policy: '7 years after entity close' },
+  { id: 'ret3', record: 'AI suggestion traces', policy: '24 months rolling' },
+  { id: 'ret4', record: 'Session & access logs', policy: '12 months rolling' },
+]
+
+/* ── 08 Audit ────────────────────────────────────────────────────── */
+
+export interface AuditRow {
+  id: string
+  at: string
+  actor: string
+  action: string
+  object: string
+  before?: string
+  after?: string
+}
+
+export const auditRows: AuditRow[] = [
+  { id: 'a1', at: 'Jul 27, 06:12', actor: 'System', action: 'ingested Mercury sync', object: '41 transactions · The Matchbox', after: '41 new records' },
+  { id: 'a2', at: 'Jul 26, 17:03', actor: 'Ani', action: 'approved pay cycle', object: 'Jul 1–15 · The Matchbox', before: 'prepared', after: 'approved · frozen' },
+  { id: 'a3', at: 'Jul 26, 16:48', actor: 'Sydney', action: 'accepted bank match', object: 'Deposit $18,500.00 → ECMay3126', before: 'unmatched', after: 'matched · 96%' },
+  { id: 'a4', at: 'Jul 25, 14:02', actor: 'Sydney', action: 'proposed rate change', object: 'Tess Fazio · contractor rate card', before: '$85.00/hr', after: '$92.50/hr · awaiting Ani' },
+  { id: 'a5', at: 'Jul 25, 09:30', actor: 'System', action: 'flagged variance', object: 'Celigo retainer vs actuals · Jul', after: 'work item created' },
+  { id: 'a6', at: 'Jul 24, 11:15', actor: 'Ani', action: 'waived overage', object: 'Pineapple Family · 1.5h over', before: '$300.00 billable', after: 'waived · reason recorded' },
+  { id: 'a7', at: 'Jul 23, 15:40', actor: 'Sydney', action: 'ran backfill', object: 'HubSpot payouts · Jul 1–20', after: '132 records ingested' },
+  { id: 'a8', at: 'Jul 22, 10:05', actor: 'Lauraine', action: 'exported close package', object: 'Jun 2026 · all entities', after: 'immutable snapshot' },
+]

@@ -1,17 +1,17 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import {
   BanknoteIcon,
   BookmarkIcon,
   BuildingIcon,
   InboxIcon,
   MoonIcon,
-  ShieldIcon,
+  SettingsIcon,
   SunIcon,
   UsersIcon,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { toast } from 'sonner'
 import {
   Command,
   CommandDialog,
@@ -39,16 +39,11 @@ export function CommandPalette({
   onChipsChange,
 }: CommandPaletteProps) {
   const { resolvedTheme, setTheme } = useTheme()
+  const router = useRouter()
 
   function run(action: () => void) {
     action()
     onOpenChange(false)
-  }
-
-  function notBuiltYet(section: string) {
-    toast(`${section} ships in a later phase`, {
-      description: 'The Queue is the working surface for this phase.',
-    })
   }
 
   return (
@@ -63,25 +58,21 @@ export function CommandPalette({
         <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Go to">
-          <CommandItem onSelect={() => run(() => {})}>
-            <InboxIcon />
-            01 Queue
-          </CommandItem>
-          <CommandItem onSelect={() => run(() => notBuiltYet('Records'))}>
-            <UsersIcon />
-            02 Records
-          </CommandItem>
-          <CommandItem onSelect={() => run(() => notBuiltYet('Reports'))}>
+          <CommandItem onSelect={() => run(() => router.push('/analysis'))}>
             <BanknoteIcon />
-            03 Reports
+            01 Analysis
           </CommandItem>
-          <CommandItem onSelect={() => run(() => notBuiltYet('Admin'))}>
-            <BuildingIcon />
-            04 Admin
+          <CommandItem onSelect={() => run(() => router.push('/'))}>
+            <InboxIcon />
+            02 Queue
           </CommandItem>
-          <CommandItem onSelect={() => run(() => notBuiltYet('Audit'))}>
-            <ShieldIcon />
-            05 Audit
+          <CommandItem onSelect={() => run(() => router.push('/records'))}>
+            <UsersIcon />
+            03 Records
+          </CommandItem>
+          <CommandItem onSelect={() => run(() => router.push('/settings'))}>
+            <SettingsIcon />
+            Settings · Admin · Audit
           </CommandItem>
         </CommandGroup>
         <CommandSeparator />
