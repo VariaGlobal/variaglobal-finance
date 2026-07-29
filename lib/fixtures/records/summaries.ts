@@ -416,4 +416,46 @@ export const summaries: Record<string, RecordSummary> = {
       { label: 'Cross-check', value: 'Asana exports · to the minute' },
     ],
   },
+
+  /* ── Rulings ────────────────────────────────────────────── */
+  'RUL-001': {
+    type: 'Ruling',
+    title: 'RUL-001 · Arsalan deferral',
+    rows: [
+      { label: 'Decision', value: 'Defer 51.5h · $5,150.00', asOf: 'Ani · Jul 27' },
+      { label: 'From', value: 'Jun 16–30 cycle' },
+      { label: 'To', value: 'Jul 1–15 · pays Jul 31' },
+      { label: 'Evidence', value: 'Mercury · only $600.00 paid', asOf: 'Jul 10–27' },
+    ],
+    chain: 'Payroll · Jun 16–30 cycle · view breakdown',
+  },
+  'RUL-002': {
+    type: 'Ruling',
+    title: 'RUL-002 · IM 3h overlap',
+    rows: [
+      { label: 'Status', value: 'Open — pick before Jul 31 run' },
+      { label: 'Option A', value: 'Pay full 51.5h · $5,150.00' },
+      { label: 'Option B', value: 'Apply −3h via IM · $4,850.00' },
+      { label: 'Source', value: 'Sheet note · never applied', asOf: 'Jun F4 / Jul F13' },
+    ],
+    chain: 'Payroll · Jul 1–15 cycle · view breakdown',
+  },
+  'RUL-003': {
+    type: 'Ruling',
+    title: 'RUL-003 · Zach rate backfill',
+    rows: [
+      { label: 'Decision', value: 'Tab rate is truth · $15.00/h' },
+      { label: 'Gap', value: 'Absent from Rate Card both months' },
+      { label: 'Applied to', value: 'Jun 16–30 cycle tab only' },
+    ],
+  },
+  'RUL-004': {
+    type: 'Ruling',
+    title: 'RUL-004 · June rate card backfill',
+    rows: [
+      { label: 'Decision', value: 'Backfill Jun from Jul card' },
+      { label: 'People', value: 'Abdullah · Kayla · Miles' },
+      { label: 'Gap', value: 'Missing from 2026-06 Rate Card' },
+    ],
+  },
 }

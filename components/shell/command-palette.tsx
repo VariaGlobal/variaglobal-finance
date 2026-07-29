@@ -95,7 +95,7 @@ export function CommandPalette({
                     <span className="truncate">{entry.title}</span>
                   </RecordHover>
                   {entry.detail && (
-                    <span className="ml-auto shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+                    <span className="ml-auto max-w-[50%] truncate text-right font-mono text-xs tabular-nums text-muted-foreground">
                       {entry.detail}
                     </span>
                   )}

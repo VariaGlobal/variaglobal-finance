@@ -11,6 +11,7 @@ import { cycles } from '@/lib/fixtures/records/cycles'
 import { documents } from '@/lib/fixtures/records/documents'
 import { recordPeople } from '@/lib/fixtures/records/people'
 import { clients } from '@/lib/fixtures/clients'
+import { realCycleSpecs } from '@/lib/fixtures/real-cycles'
 
 export interface SearchEntry {
   /** Unique entry id (may differ from summaryId for line-level entries). */
@@ -128,6 +129,30 @@ function buildIndex(): SearchEntry[] {
           'cycle line ruling',
         ),
         target: { tab: 'cycles', openId: cycle.id },
+      })
+    }
+  }
+
+  /* Rulings — deferrals, open questions, and backfills on the cycles */
+  for (const spec of realCycleSpecs) {
+    const cycle = cycles.find((c) => c.id === spec.id)
+    for (const instruction of spec.instructions ?? []) {
+      if (!instruction.id.startsWith('RUL')) continue
+      entries.push({
+        id: `ruling-${instruction.id}`,
+        summaryId: instruction.id,
+        hub: 'Pay cycles',
+        title: `${instruction.id} · ${'person' in instruction ? instruction.person : ''}`.trim(),
+        detail: instruction.label,
+        keywords: hay(
+          instruction.id,
+          'person' in instruction ? instruction.person : undefined,
+          instruction.label,
+          cycle?.periodLabel,
+          cycle ? monthWords(cycle.periodLabel) : undefined,
+          'ruling decision',
+        ),
+        target: { tab: 'cycles', openId: spec.id },
       })
     }
   }
