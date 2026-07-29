@@ -1,11 +1,15 @@
 import type { AppUser, Entity, FilterChip, FilterKind, SavedView } from '@/lib/types'
 
 export const entities: Entity[] = [
-  { id: 'varia-global', name: 'Varia Global' },
-  { id: 'the-matchbox', name: 'The Matchbox' },
-  { id: 'spyll-world', name: 'Spyll World' },
-  { id: 'the-ad-spend', name: 'The Ad Spend' },
+  { id: 'varia-global', name: 'Varia Global', legalName: 'Bisaria LLC' },
+  { id: 'the-matchbox', name: 'The Matchbox', legalName: 'The Matchbox, Inc.' },
+  { id: 'spyll-world', name: 'Spyll World', legalName: 'Bisaria Records LLC' },
+  { id: 'spyll-publishing', name: 'Spyll Publishing', legalName: 'Bisaria Publishing LLC' },
+  { id: 'the-ad-spend', name: 'The Ad Spend', legalName: 'Ad Spend Technologies, Inc.' },
 ]
+
+/** Display-name lookup for the entity holding a relationship. */
+export const entityName = (id: string) => entities.find((e) => e.id === id)?.name ?? id
 
 export const users: AppUser[] = [
   { id: 'ani', name: 'Ani', role: 'owner', roleLabel: 'owner / approver', canApprove: true },

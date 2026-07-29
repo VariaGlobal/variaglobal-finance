@@ -25,11 +25,14 @@ export function HubHeader({
   title,
   count,
   countNoun,
+  countNounPlural,
   children,
 }: {
   title: string
   count: number
   countNoun: string
+  /** Irregular plural, e.g. "counterparties". Defaults to countNoun + "s". */
+  countNounPlural?: string
   children?: React.ReactNode
 }) {
   return (
@@ -37,7 +40,7 @@ export function HubHeader({
       <div className="flex items-baseline gap-3">
         <h1 className="text-lg font-medium tracking-tight text-foreground">{title}</h1>
         <span className="font-mono text-xs tabular-nums text-muted-foreground">
-          {count} {count === 1 ? countNoun : `${countNoun}s`}
+          {count} {count === 1 ? countNoun : (countNounPlural ?? `${countNoun}s`)}
         </span>
       </div>
       {children}

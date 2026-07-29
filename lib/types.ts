@@ -8,7 +8,12 @@
 
 // ---------- Shared primitives ----------
 
-export type EntityId = 'varia-global' | 'the-matchbox' | 'spyll-world' | 'the-ad-spend'
+export type EntityId =
+  | 'varia-global'
+  | 'the-matchbox'
+  | 'spyll-world'
+  | 'spyll-publishing'
+  | 'the-ad-spend'
 
 export interface Period {
   id: string // e.g. "2026-07" or "2026-07-H2"
@@ -134,7 +139,29 @@ export interface Person {
   complianceDocs: { kind: 'NDA' | 'W-9'; status: 'signed' | 'missing' }[]
 }
 
-// ---------- Clients / contracts ----------
+// ---------- Counterparties / contracts ----------
+// A counterparty is anyone money moves to or from. "Client" is a ROLE
+// a counterparty plays in a relationship — never a type of its own.
+
+export type CounterpartyRole =
+  | 'client'
+  | 'customer'
+  | 'vendor'
+  | 'partner'
+  | 'royalty source'
+  | 'commission source'
+
+export interface Relationship {
+  id: string
+  role: CounterpartyRole
+  /** Which of our companies holds this relationship. */
+  entity: EntityId
+  /** What the money stream is: "retainer", "SaaS subscription", "royalty distributions"… */
+  streamType: string
+  status: 'active' | 'ended' | 'dormant'
+  effectiveFrom: string
+  effectiveUntil?: string
+}
 
 export interface ContractRule {
   id: string
@@ -155,7 +182,7 @@ export interface ContractTerms {
 
 export interface Contract {
   id: string
-  clientId: string
+  counterpartyId: string
   name: string
   kind: 'retainer' | 'fixed'
   status: 'active' | 'ended' | 'missing_terms'
@@ -163,10 +190,15 @@ export interface Contract {
   rules: ContractRule[]
 }
 
-export interface Client {
+export interface Counterparty {
   id: string
   name: string
-  entity: EntityId
+  /** "Also known as" — prior or trade names, e.g. Rebld.ai → HiJenny. */
+  aliases?: string[]
+  /** Every role this counterparty plays across our entities. */
+  roles: CounterpartyRole[]
+  /** One card per money stream: role × our entity × stream. */
+  relationships: Relationship[]
   contracts: Contract[]
   /** Precomputed monthly hours where relevant: { "Apr": "45.0h", ... } */
   hoursByMonth?: Record<string, string>
@@ -309,6 +341,8 @@ export interface AuditEvent {
 
 export interface Entity {
   id: EntityId
+  /** Legal name where it differs from the display name, e.g. "Bisaria LLC". */
+  legalName?: string
   name: string
 }
 

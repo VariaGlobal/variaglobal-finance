@@ -143,42 +143,83 @@ export const summaries: Record<string, RecordSummary> = {
     ],
   },
 
-  /* ── Clients ────────────────────────────────────────────── */
+  /* ── Counterparties ─────────────────────────────────────── */
   ecommission: {
-    type: 'Client',
+    type: 'Counterparty',
     title: 'eCommission',
     rows: [
+      { label: 'Role', value: 'client · The Matchbox' },
       { label: 'Retainer', value: '$4,500.00/mo · 22.5h', asOf: 'since Jan 2026' },
-      { label: 'Project', value: '$60,000.00 fixed', asOf: 'since May 2026' },
       { label: 'Open invoice', value: 'ECJun3026 · $5,400.00', asOf: 'due Jul 30' },
       { label: 'Rule', value: 'excludes Arsalan — billed via IM' },
     ],
   },
   celigo: {
-    type: 'Client',
+    type: 'Counterparty',
     title: 'Celigo',
     rows: [
+      { label: 'Role', value: 'client · The Matchbox' },
       { label: 'Retainer', value: '$7,500.00/mo · 33h', asOf: 'since Mar 2026' },
       { label: 'Overage', value: '$225.00/h' },
       { label: 'Last paid', value: 'CELJul2026', asOf: 'Jul 14 · Mercury ACH' },
     ],
   },
   'maxwell-social': {
-    type: 'Client',
+    type: 'Counterparty',
     title: 'Maxwell Social',
     rows: [
+      { label: 'Role', value: 'client · The Matchbox' },
       { label: 'Jun billed', value: '50.0h · $7,000.00' },
       { label: 'Received', value: '$4,620.00 partial', asOf: 'Jul 5' },
       { label: 'Balance', value: '$2,380.00 open' },
     ],
   },
   'pineapple-family': {
-    type: 'Client',
+    type: 'Counterparty',
     title: 'Pineapple Family',
     rows: [
+      { label: 'Role', value: 'client · The Matchbox' },
       { label: 'Status', value: 'missing terms — flagged in queue' },
       { label: 'Open invoice', value: 'PFJul2026 · $2,700.00', asOf: 'disputed' },
       { label: 'Last ruling', value: '1.5h overage waived', asOf: 'Jul 24' },
+    ],
+  },
+  hubspot: {
+    type: 'Counterparty',
+    title: 'HubSpot',
+    rows: [
+      { label: 'Roles', value: 'vendor + commission source' },
+      { label: 'Vendor', value: 'SaaS seats · The Matchbox', asOf: 'since Feb 2026' },
+      { label: 'Commission', value: 'partner payouts', asOf: 'since May 2026' },
+      { label: 'Last payout', value: 'fees pending reconcile', asOf: 'Jun stmt' },
+    ],
+  },
+  'interrupt-media': {
+    type: 'Counterparty',
+    title: 'Interrupt Media',
+    rows: [
+      { label: 'Roles', value: 'vendor + partner' },
+      { label: 'Vendor', value: 'subcontracted labor', asOf: 'since Apr 2026' },
+      { label: 'Jun invoice', value: '$1,375.00 · Tess 11h', asOf: 'settled Jul 10' },
+      { label: 'Open item', value: 'RUL-002 · 3h Arsalan overlap' },
+    ],
+  },
+  'rebld-ai': {
+    type: 'Counterparty',
+    title: 'Rebld.ai',
+    rows: [
+      { label: 'Role', value: 'customer · The Ad Spend' },
+      { label: 'Aka', value: 'HiJenny', asOf: 'renamed May 2026' },
+      { label: 'Stream', value: 'self-serve subscription', asOf: 'since May 2026' },
+    ],
+  },
+  soundexchange: {
+    type: 'Counterparty',
+    title: 'SoundExchange',
+    rows: [
+      { label: 'Role', value: 'royalty source · 2 entities' },
+      { label: 'Spyll World', value: 'sound-recording royalties', asOf: 'since Jan 2026' },
+      { label: 'Spyll Publishing', value: 'publishing-share royalties', asOf: 'since Jan 2026' },
     ],
   },
 
