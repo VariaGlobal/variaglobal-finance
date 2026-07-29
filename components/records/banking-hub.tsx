@@ -1,5 +1,6 @@
 'use client'
 
+import { RecordHover } from '@/components/records/record-hover'
 import { HubHeader, MatchedChip, RecordsEmpty, TableHead } from '@/components/records/records-bits'
 import { cn } from '@/lib/utils'
 import type { BankTransaction } from '@/lib/types'
@@ -39,7 +40,13 @@ export function BankingHub({ transactions }: { transactions: BankTransaction[] }
             <span className="font-mono text-xs tabular-nums text-muted-foreground">
               {txn.postedAt}
             </span>
-            <span className="text-title truncate text-foreground">{txn.description}</span>
+            {txn.matched ? (
+              <RecordHover recordId={txn.id} className="min-w-0">
+                <span className="text-title truncate text-foreground">{txn.description}</span>
+              </RecordHover>
+            ) : (
+              <span className="text-title truncate text-foreground">{txn.description}</span>
+            )}
             <span
               className={cn(
                 'text-right font-mono text-sm tabular-nums',

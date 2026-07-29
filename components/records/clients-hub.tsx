@@ -7,7 +7,13 @@ import type { Client } from '@/lib/types'
 
 const grid = 'grid-cols-[minmax(150px,1.2fr)_minmax(220px,2fr)_minmax(120px,1fr)_110px]'
 
-export function ClientsHub({ clients }: { clients: Client[] }) {
+export function ClientsHub({
+  clients,
+  onOpenClient,
+}: {
+  clients: Client[]
+  onOpenClient: (clientId: string) => void
+}) {
   if (clients.length === 0) {
     return (
       <RecordsEmpty
@@ -45,7 +51,7 @@ export function ClientsHub({ clients }: { clients: Client[] }) {
               key={client.id}
               className={`grid min-h-12 items-center gap-3 border-b border-border px-5 py-2.5 transition-colors duration-150 hover:bg-foreground/[0.03] ${grid}`}
             >
-              <RecordHover recordId={client.id}>
+              <RecordHover recordId={client.id} onClick={() => onOpenClient(client.id)}>
                 <span className="text-title truncate font-medium text-foreground">
                   {client.name}
                 </span>

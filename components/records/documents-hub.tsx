@@ -12,7 +12,13 @@ function shortHash(hash: string): string {
   return `sha256:${hex.slice(0, 8)}…${hex.slice(-6)}`
 }
 
-export function DocumentsHub({ documents }: { documents: DocumentRef[] }) {
+export function DocumentsHub({
+  documents,
+  onOpenDocument,
+}: {
+  documents: DocumentRef[]
+  onOpenDocument: (documentId: string) => void
+}) {
   if (documents.length === 0) {
     return (
       <RecordsEmpty
@@ -41,7 +47,7 @@ export function DocumentsHub({ documents }: { documents: DocumentRef[] }) {
             key={doc.id}
             className={`grid min-h-12 items-center gap-3 border-b border-border px-5 py-2.5 transition-colors duration-150 hover:bg-foreground/[0.03] ${grid}`}
           >
-            <RecordHover recordId={doc.id}>
+            <RecordHover recordId={doc.id} onClick={() => onOpenDocument(doc.id)}>
               <span className="text-title truncate font-medium text-foreground">
                 {doc.name}
               </span>

@@ -11,9 +11,11 @@ const grid = 'grid-cols-[minmax(160px,1.4fr)_minmax(120px,1fr)_100px_minmax(140p
 export function PeopleHub({
   people,
   highlightedId,
+  onOpenPerson,
 }: {
   people: Person[]
   highlightedId?: string | null
+  onOpenPerson: (personId: string) => void
 }) {
   if (people.length === 0) {
     return (
@@ -52,7 +54,7 @@ export function PeopleHub({
                 highlightedId === person.id && 'bg-foreground/[0.04]',
               )}
             >
-              <RecordHover recordId={person.id}>
+              <RecordHover recordId={person.id} onClick={() => onOpenPerson(person.id)}>
                 <span className="text-title truncate font-medium text-foreground">
                   {person.name}
                 </span>

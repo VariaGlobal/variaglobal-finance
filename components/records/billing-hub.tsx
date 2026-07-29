@@ -97,9 +97,11 @@ export function BillingHub({
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
                   {payment.receivedAt}
                 </span>
-                <span className="text-prepared text-right font-mono text-sm tabular-nums">
-                  {payment.amount.display}
-                </span>
+                <RecordHover recordId={payment.id} className="justify-end">
+                  <span className="text-prepared text-right font-mono text-sm tabular-nums">
+                    {payment.amount.display}
+                  </span>
+                </RecordHover>
                 {payment.invoiceId ? (
                   <RecordHover recordId={payment.invoiceId}>
                     <span className="font-mono text-xs tabular-nums text-foreground">
