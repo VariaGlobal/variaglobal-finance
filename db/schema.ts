@@ -79,3 +79,33 @@ export const auditEvents = pgTable('audit_events', {
   objectId: text('object_id').notNull(),
   detail: text('detail'),
 })
+
+/**
+ * Counterparties — anyone external that money moves to or from. "Client" is
+ * not an entity type here; it's a ROLE in a relationship. One counterparty can
+ * hold many relationships across the group: HubSpot is a vendor to The
+ * Matchbox AND a commission source; SoundExchange is a royalty source to two
+ * entities; Interrupt Media is a vendor and a delivery partner.
+ */
+export const counterparties = pgTable('counterparties', {
+  id: text('id').primaryKey(), // slug, e.g. 'interrupt-media'
+  name: text('name').notNull(),
+  kind: text('kind').notNull(), // 'org' | 'person'
+  notes: text('notes'),
+})
+
+export const counterpartyAliases = pgTable('counterparty_aliases', {
+  alias: text('alias').primaryKey(), // 'hijenny', 'a4l', 'lytical'
+  counterpartyId: text('counterparty_id').notNull(),
+})
+
+export const relationships = pgTable('relationships', {
+  id: text('id').primaryKey(), // 'celigo:client:the-matchbox'
+  counterpartyId: text('counterparty_id').notNull(),
+  entity: text('entity').notNull(), // which of OUR entities holds this relationship
+  role: text('role').notNull(), // client | customer | vendor | partner | royalty_source | commission_source | tax_agency | other
+  streamType: text('stream_type'), // retainer | commission | royalty | one_time | pass_through | saas | services
+  effectiveFrom: text('effective_from'),
+  effectiveTo: text('effective_to'),
+  status: text('status').notNull(), // 'active' | 'ended' | 'prospect'
+})
