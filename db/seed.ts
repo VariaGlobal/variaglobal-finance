@@ -2,7 +2,7 @@
  * Database bootstrap — DDL (idempotent) + seed from the cell-verified fixtures.
  * Called only by the token-gated /api/dev/bootstrap route. Safe to re-run:
  * creates missing tables, upserts reference data, replaces cycle lines with
- * identical engine output. Retired once live ingestion lands.
+ * identical engine output. Retired once live ingestion owns the database.
  */
 
 import { sql } from 'drizzle-orm'
@@ -22,9 +22,92 @@ const DDL: string[] = [
   `CREATE UNIQUE INDEX IF NOT EXISTS pay_cycle_lines_natural_uq ON pay_cycle_lines (cycle_id, person, origin_start, deferred_from)`,
   `CREATE TABLE IF NOT EXISTS rulings (id text PRIMARY KEY, kind text NOT NULL, label text NOT NULL, evidence text, status text NOT NULL, options jsonb, decided_by text, decided_at timestamp)`,
   `CREATE TABLE IF NOT EXISTS audit_events (id serial PRIMARY KEY, at timestamp DEFAULT now() NOT NULL, actor text NOT NULL, action text NOT NULL, object_type text NOT NULL, object_id text NOT NULL, detail text)`,
+  `CREATE TABLE IF NOT EXISTS counterparties (id text PRIMARY KEY, name text NOT NULL, kind text NOT NULL, notes text)`,
+  `CREATE TABLE IF NOT EXISTS counterparty_aliases (alias text PRIMARY KEY, counterparty_id text NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS relationships (id text PRIMARY KEY, counterparty_id text NOT NULL, entity text NOT NULL, role text NOT NULL, stream_type text, effective_from text, effective_to text, status text NOT NULL)`,
 ]
 
 const slugify = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+
+/** Counterparty registry — from the ecosystem docs + finance workbooks. A role, not a type. */
+const COUNTERPARTIES: { id: string; name: string; kind: 'org' | 'person'; notes?: string }[] = [
+  { id: 'ecommission', name: 'eCommission', kind: 'org' },
+  { id: 'celigo', name: 'Celigo', kind: 'org' },
+  { id: 'maxwell-social', name: 'Maxwell Social', kind: 'org' },
+  { id: 'tmrw-for-men', name: 'TMRW for Men', kind: 'org' },
+  { id: 'lytical-ventures', name: 'Lytical Ventures', kind: 'org', notes: 'Often confused with Lyrical Asset Management in transcripts' },
+  { id: 'lyrical-asset-management', name: 'Lyrical Asset Management', kind: 'org', notes: 'Billed only if combined Lytical+Lyrical hours exceed 20h' },
+  { id: 'animated-for-life', name: 'Animated for Life', kind: 'org' },
+  { id: 'montycloud', name: 'MontyCloud', kind: 'org' },
+  { id: 'peoplefinders', name: 'PeopleFinders', kind: 'org', notes: 'Sub-brands: LeadSherpa, PropertyReach; co-delivered with Interrupt Media' },
+  { id: 'rebld-ai', name: 'Rebld.ai', kind: 'org', notes: 'Subsidiary: HiJenny' },
+  { id: 'pineapple-family', name: 'Pineapple Family', kind: 'org' },
+  { id: 'brass-animals', name: 'Brass Animals', kind: 'org', notes: 'Owned by Ben Lack (also owns Interrupt Media)' },
+  { id: 'evoke-agency', name: 'Evoke Agency', kind: 'org' },
+  { id: 'deodato', name: 'Deodato', kind: 'org' },
+  { id: 'ooni', name: 'Ooni', kind: 'org' },
+  { id: 'interrupt-media', name: 'Interrupt Media', kind: 'org', notes: 'Ben Lack. External partner — NOT a Varia entity. Pass-through payee for routed contractors' },
+  { id: 'jd-tech-llc', name: 'JD Tech LLC', kind: 'org', notes: 'John DeStefano. Software billed in advance, services in arrears' },
+  { id: 'zacharin-consulting', name: 'Zacharin Consulting', kind: 'org', notes: 'Bookkeeping (Lauraine); operates Gusto payroll' },
+  { id: 'rainwater-cpa', name: 'Rainwater CPA', kind: 'org' },
+  { id: 'hubspot', name: 'HubSpot', kind: 'org', notes: 'Both a vendor (SaaS + payments processing) and a commission source' },
+  { id: 'soundexchange', name: 'SoundExchange', kind: 'org' },
+  { id: 'bmi', name: 'BMI', kind: 'org' },
+  { id: 'the-mlc', name: 'The MLC', kind: 'org' },
+  { id: 'symphonic', name: 'Symphonic', kind: 'org' },
+]
+
+const ALIASES: { alias: string; counterpartyId: string }[] = [
+  { alias: 'im', counterpartyId: 'interrupt-media' },
+  { alias: 'a4l', counterpartyId: 'animated-for-life' },
+  { alias: 'hijenny', counterpartyId: 'rebld-ai' },
+  { alias: 'lytical', counterpartyId: 'lytical-ventures' },
+  { alias: 'lyrical', counterpartyId: 'lyrical-asset-management' },
+  { alias: 'tmrw', counterpartyId: 'tmrw-for-men' },
+  { alias: 'pf', counterpartyId: 'peoplefinders' },
+  { alias: 'john-destefano', counterpartyId: 'jd-tech-llc' },
+]
+
+const REL = (counterpartyId: string, entity: string, role: string, streamType: string | null, status: string): typeof s.relationships.$inferInsert => ({
+  id: `${counterpartyId}:${role}:${entity}`,
+  counterpartyId,
+  entity,
+  role,
+  streamType,
+  effectiveFrom: null,
+  effectiveTo: null,
+  status,
+})
+
+const RELATIONSHIPS: (typeof s.relationships.$inferInsert)[] = [
+  REL('ecommission', 'the-matchbox', 'client', 'retainer', 'active'),
+  REL('celigo', 'the-matchbox', 'client', 'retainer', 'active'),
+  REL('maxwell-social', 'the-matchbox', 'client', 'retainer', 'active'),
+  REL('tmrw-for-men', 'the-matchbox', 'client', 'retainer', 'active'),
+  REL('lytical-ventures', 'the-matchbox', 'client', 'retainer', 'active'),
+  REL('lyrical-asset-management', 'the-matchbox', 'client', 'retainer', 'active'),
+  REL('animated-for-life', 'the-matchbox', 'client', 'services', 'active'),
+  REL('montycloud', 'the-matchbox', 'client', 'retainer', 'ended'),
+  REL('peoplefinders', 'the-matchbox', 'client', 'retainer', 'ended'),
+  REL('rebld-ai', 'the-matchbox', 'client', 'retainer', 'ended'),
+  REL('pineapple-family', 'the-matchbox', 'client', null, 'active'),
+  REL('brass-animals', 'the-ad-spend', 'customer', 'saas', 'active'),
+  REL('evoke-agency', 'the-ad-spend', 'customer', 'saas', 'active'),
+  REL('deodato', 'the-ad-spend', 'customer', 'saas', 'active'),
+  REL('ooni', 'the-ad-spend', 'customer', 'saas', 'active'),
+  REL('interrupt-media', 'the-matchbox', 'vendor', 'pass_through', 'active'),
+  REL('interrupt-media', 'the-matchbox', 'partner', 'services', 'active'),
+  REL('jd-tech-llc', 'the-matchbox', 'vendor', 'services', 'active'),
+  REL('zacharin-consulting', 'varia-global', 'vendor', 'services', 'active'),
+  REL('rainwater-cpa', 'varia-global', 'vendor', 'services', 'active'),
+  REL('hubspot', 'the-matchbox', 'vendor', 'saas', 'active'),
+  REL('hubspot', 'the-matchbox', 'commission_source', 'commission', 'active'),
+  REL('soundexchange', 'spyll-world', 'royalty_source', 'royalty', 'active'),
+  REL('soundexchange', 'bisaria-publishing', 'royalty_source', 'royalty', 'active'),
+  REL('bmi', 'bisaria-publishing', 'royalty_source', 'royalty', 'active'),
+  REL('the-mlc', 'bisaria-publishing', 'royalty_source', 'royalty', 'active'),
+  REL('symphonic', 'spyll-world', 'royalty_source', 'royalty', 'active'),
+]
 
 export interface BootstrapResult {
   counts: Record<string, number>
@@ -82,7 +165,20 @@ export async function bootstrapDatabase(db: Db, mode: 'seed' | 'verify' = 'seed'
     ]
     for (const r of rulingRows) await db.insert(s.rulings).values(r).onConflictDoNothing()
 
+    await db.insert(s.counterparties).values(COUNTERPARTIES).onConflictDoNothing()
+    await db.insert(s.counterpartyAliases).values(ALIASES).onConflictDoNothing()
+    await db.insert(s.relationships).values(RELATIONSHIPS).onConflictDoNothing()
+
     const seededBefore = await db.select().from(s.auditEvents)
+    if (!seededBefore.some((e) => e.action === 'seeded counterparty registry')) {
+      await db.insert(s.auditEvents).values({
+        actor: 'claude (bootstrap)',
+        action: 'seeded counterparty registry',
+        objectType: 'database',
+        objectId: 'neon',
+        detail: `${COUNTERPARTIES.length} counterparties, ${RELATIONSHIPS.length} relationships, ${ALIASES.length} aliases - roles not types: client/customer/vendor/partner/royalty_source/commission_source`,
+      })
+    }
     if (!seededBefore.some((e) => e.action === 'seeded phase-1 core')) {
       await db.insert(s.auditEvents).values({
         actor: 'claude (bootstrap)',
@@ -101,6 +197,9 @@ export async function bootstrapDatabase(db: Db, mode: 'seed' | 'verify' = 'seed'
   counts.pay_cycles = (await db.select().from(s.payCycles)).length
   counts.pay_cycle_lines = (await db.select().from(s.payCycleLines)).length
   counts.rulings = (await db.select().from(s.rulings)).length
+  counts.counterparties = (await db.select().from(s.counterparties)).length
+  counts.relationships = (await db.select().from(s.relationships)).length
+  counts.counterparty_aliases = (await db.select().from(s.counterpartyAliases)).length
   counts.audit_events = (await db.select().from(s.auditEvents)).length
 
   const juneLines = await db.select().from(s.payCycleLines).where(eq(s.payCycleLines.cycleId, '2026-06-H2'))
