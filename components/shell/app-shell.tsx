@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SettingsIcon } from 'lucide-react'
 import { TopNav, type SubTab } from '@/components/shell/top-nav'
 import { CommandPalette } from '@/components/shell/command-palette'
+import { AskPanel } from '@/components/ask/ask-panel'
 import { cn } from '@/lib/utils'
 import type { AppUser, Entity, FilterChip } from '@/lib/types'
 
@@ -36,13 +37,29 @@ export function AppShell({
   children,
 }: AppShellProps) {
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [askOpen, setAskOpen] = useState(false)
+  // Seed carries a query handed over from ⌘K; the nonce re-triggers the panel
+  // even when the same query is sent twice.
+  const [askSeed, setAskSeed] = useState<{ query: string; nonce: number } | null>(null)
   const router = useRouter()
+
+  // Open the Ask panel, optionally seeding it with a query (e.g. from search).
+  const openAsk = useCallback((query?: string) => {
+    if (query && query.trim()) {
+      setAskSeed({ query: query.trim(), nonce: Date.now() })
+    }
+    setAskOpen(true)
+  }, [])
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setPaletteOpen((o) => !o)
+      }
+      if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setAskOpen((o) => !o)
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -62,6 +79,7 @@ export function AppShell({
         user={user}
         onUserChange={onUserChange}
         onOpenPalette={() => setPaletteOpen(true)}
+        onOpenAsk={() => openAsk()}
         subTabs={subTabs}
         activeSubTab={activeSubTab}
         onSubTabChange={onSubTabChange}
@@ -93,6 +111,17 @@ export function AppShell({
         onOpenChange={setPaletteOpen}
         onEntityChange={onEntityChange}
         onChipsChange={onChipsChange}
+        onAskAI={(query) => {
+          setPaletteOpen(false)
+          openAsk(query)
+        }}
+      />
+
+      <AskPanel
+        open={askOpen}
+        onOpenChange={setAskOpen}
+        seedQuery={askSeed?.query}
+        seedNonce={askSeed?.nonce}
       />
     </div>
   )
