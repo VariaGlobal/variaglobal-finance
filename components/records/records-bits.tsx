@@ -222,15 +222,18 @@ export function HubHeader({
 export function TableHead({
   columns,
   gridClassName,
+  padX = hubPadX,
 }: {
   columns: { label: string; align?: 'right' }[]
   gridClassName: string
+  /** Override the default hub horizontal padding (e.g. detail panes use px-6). */
+  padX?: string
 }) {
   return (
     <div
       className={cn(
         'grid items-baseline gap-3 border-b border-border pt-1 pb-2.5 text-[10.5px] font-medium tracking-[0.06em] text-muted-foreground/70 uppercase',
-        hubPadX,
+        padX,
         gridClassName,
       )}
     >

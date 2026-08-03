@@ -2,33 +2,27 @@
 
 import { useState } from 'react'
 import { AppShell } from '@/components/shell/app-shell'
-import { QueueScreen } from '@/components/queue/queue-screen'
-import { workItems } from '@/lib/fixtures/work-items'
+import { HubPlaceholder } from '@/components/shell/hub-placeholder'
 import { entities, users } from '@/lib/fixtures/workspace'
-import type { AppUser, Entity, FilterChip, WorkItemType } from '@/lib/types'
+import type { AppUser, Entity, FilterChip } from '@/lib/types'
 
-/** Queue sub-tabs map straight onto work-item types. */
+/**
+ * Queue is parked as a TBD while we focus on Records. The tab structure stays
+ * so navigation is intact; the working triage screen lives in git history.
+ */
 const queueTabs = [
-  { id: 'all', number: '01', label: 'All items', types: null },
-  { id: 'pay-cycle', number: '02', label: 'Pay cycle', types: ['pay_cycle'] },
-  {
-    id: 'invoicing',
-    number: '03',
-    label: 'Invoicing',
-    types: ['invoice_variance', 'card_statement'],
-  },
-  {
-    id: 'exceptions',
-    number: '04',
-    label: 'Exceptions',
-    types: ['bank_match', 'overage', 'missing_contract'],
-  },
-] as const satisfies ReadonlyArray<{
-  id: string
-  number: string
-  label: string
-  types: readonly WorkItemType[] | null
-}>
+  { id: 'all', number: '01', label: 'All items' },
+  { id: 'pay-cycle', number: '02', label: 'Pay cycle' },
+  { id: 'invoicing', number: '03', label: 'Invoicing' },
+  { id: 'exceptions', number: '04', label: 'Exceptions' },
+] as const
+
+const sublines: Record<string, string> = {
+  all: 'The unified triage inbox is being redesigned. Records is the current focus.',
+  'pay-cycle': 'Pay-cycle triage returns once the Records foundation is settled.',
+  invoicing: 'Invoice and card-statement triage returns in a later phase.',
+  exceptions: 'Bank-match and exception triage returns in a later phase.',
+}
 
 export default function QueuePage() {
   const [entity, setEntity] = useState<Entity>(entities[0])
@@ -47,17 +41,13 @@ export default function QueuePage() {
       onChipsChange={setChips}
       user={user}
       onUserChange={setUser}
-      subTabs={queueTabs.map(({ id, number, label }) => ({ id, number, label }))}
+      subTabs={[...queueTabs]}
       activeSubTab={activeTab}
       onSubTabChange={setActiveTab}
     >
-      <QueueScreen
-        items={workItems}
-        entity={entity}
-        chips={chips}
-        user={user}
-        typeFilter={tab.types ? [...tab.types] : undefined}
-      />
+      <div key={activeTab} className="flex min-h-full flex-1 flex-col">
+        <HubPlaceholder title={`${tab.label} — coming back soon.`} subline={sublines[tab.id]} />
+      </div>
     </AppShell>
   )
 }

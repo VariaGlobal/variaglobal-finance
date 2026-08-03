@@ -41,7 +41,7 @@ export function DocumentsHub({
 
   return (
     <HubCanvas>
-      <section aria-label="Documents" className="flex flex-col">
+      <section aria-label="Documents" className="flex min-h-0 flex-1 flex-col">
         <PageHeader
           title="Documents"
           count={documents.length}
@@ -49,7 +49,7 @@ export function DocumentsHub({
           description="Every statement, contract, and compliance file — hashed on upload so duplicates never land twice."
           action={action}
         />
-        <div className="pt-4">
+        <HubBody>
           <TableHead
             gridClassName={grid}
             columns={[
@@ -79,7 +79,7 @@ export function DocumentsHub({
               </div>
             ))}
           </div>
-        </div>
+        </HubBody>
       </section>
     </HubCanvas>
   )
