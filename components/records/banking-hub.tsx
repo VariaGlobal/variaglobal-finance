@@ -174,6 +174,7 @@ export function BankingHub({
             </div>
           )}
         </HubBody>
+        </>
         )}
       </section>
     </HubCanvas>
