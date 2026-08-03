@@ -98,6 +98,7 @@ export function CountPill({
  */
 export function PageHeader({
   title,
+  eyebrow,
   count,
   countNoun,
   countNounPlural,
@@ -106,6 +107,8 @@ export function PageHeader({
   action,
 }: {
   title: string
+  /** Small group/context label above the title, e.g. "Money · what we owe people". */
+  eyebrow?: string
   count?: number
   countNoun?: string
   countNounPlural?: string
@@ -121,6 +124,11 @@ export function PageHeader({
       )}
     >
       <div className="flex min-w-0 flex-col gap-2">
+        {eyebrow && (
+          <span className="text-[11px] font-medium tracking-[0.06em] text-muted-foreground/70 uppercase">
+            {eyebrow}
+          </span>
+        )}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <h1 className="text-xl font-medium tracking-tight text-balance text-foreground md:text-2xl">
             {title}
@@ -259,40 +267,82 @@ export function rowClass(gridClassName: string, interactive = false) {
   )
 }
 
-const lifecycleChip: Record<string, string> = {
-  draft: 'bg-muted text-muted-foreground border-border',
-  sent: 'bg-suggestion/10 text-suggestion border-suggestion/20',
-  partially_paid: 'bg-decision/10 text-decision border-decision/20',
-  paid: 'bg-prepared/10 text-prepared border-prepared/20',
-  disputed: 'bg-variance/10 text-variance border-variance/20',
-  credit_note: 'bg-muted text-muted-foreground border-border',
-  void: 'bg-held/10 text-held border-held/20',
+/* ── Shared status vocabulary ────────────────────────────────────────��
+ * ONE chip language across every hub: the same tone always means the same
+ * thing, so a green chip reads "settled / good" whether it's a paid invoice,
+ * a matched bank row, a signed NDA, or an active relationship — and never
+ * anything else. Domain chips below are thin wrappers that map their status
+ * onto one of these four tones. Roles and categories are a different axis and
+ * deliberately stay outside this vocabulary.
+ *
+ *   positive  (green)  settled / good      paid · matched · signed · active
+ *   pending   (blue)   in motion / awaited  to be paid · unmatched · sent
+ *   attention (amber)  needs a human        missing · dormant · disputed
+ *   neutral   (grey)   inactive / n-a       ended · void · draft · excluded
+ */
+export type StatusTone = 'positive' | 'pending' | 'attention' | 'neutral'
+
+const statusToneClass: Record<StatusTone, string> = {
+  positive: 'border-prepared/20 bg-prepared/10 text-prepared',
+  pending: 'border-decision/20 bg-decision/10 text-decision',
+  attention: 'border-held/20 bg-held/10 text-held',
+  neutral: 'border-border bg-muted text-muted-foreground',
+}
+
+export function StatusChip({
+  tone,
+  children,
+  title,
+}: {
+  tone: StatusTone
+  children: React.ReactNode
+  title?: string
+}) {
+  return (
+    <Badge variant="outline" title={title} className={cn('font-normal', statusToneClass[tone])}>
+      {children}
+    </Badge>
+  )
+}
+
+/** Invoice lifecycle → shared tone. */
+const invoiceStatusTone: Record<string, StatusTone> = {
+  draft: 'neutral',
+  sent: 'pending',
+  partially_paid: 'pending',
+  paid: 'positive',
+  disputed: 'attention',
+  credit_note: 'neutral',
+  void: 'neutral',
 }
 
 export function LifecycleChip({ status }: { status: string }) {
   return (
-    <Badge
-      variant="outline"
-      className={cn('font-normal', lifecycleChip[status] ?? lifecycleChip.draft)}
-    >
+    <StatusChip tone={invoiceStatusTone[status] ?? 'neutral'}>
       {status.replace(/_/g, ' ')}
-    </Badge>
+    </StatusChip>
   )
 }
 
 /** Matched / unmatched chip for bank rows. */
 export function MatchedChip({ matched }: { matched: boolean }) {
   return (
-    <Badge
-      variant="outline"
-      className={cn(
-        'font-normal',
-        matched
-          ? 'bg-prepared/10 text-prepared border-prepared/20'
-          : 'bg-decision/10 text-decision border-decision/20',
-      )}
-    >
+    <StatusChip tone={matched ? 'positive' : 'pending'}>
       {matched ? 'matched' : 'unmatched'}
-    </Badge>
+    </StatusChip>
   )
 }
+
+/** Relationship / contract lifecycle → shared tone. */
+export function relationshipTone(status: string): StatusTone {
+  if (status === 'active') return 'positive'
+  if (status === 'dormant' || status === 'missing_terms') return 'attention'
+  return 'neutral' // ended
+}
+
+/** Canonical one-line subtitles for the MONEY hubs — same phrasing everywhere. */
+export const moneyHubSubtitles = {
+  cycles: 'what we owe people for work',
+  billing: 'invoices and payments — promises with outsiders',
+  banking: 'what actually moved at the bank',
+} as const

@@ -4,7 +4,7 @@ import { ArrowLeftIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { RecordHover } from '@/components/records/record-hover'
-import { TableHead } from '@/components/records/records-bits'
+import { StatusChip, TableHead, type StatusTone } from '@/components/records/records-bits'
 import { cn } from '@/lib/utils'
 import type { CycleDisplay, CycleLineDisplay } from '@/lib/fixtures/records/cycles'
 
@@ -12,11 +12,11 @@ const grid = 'grid-cols-[minmax(150px,1.3fr)_80px_90px_110px_110px_minmax(220px,
 
 function LineStateChip({ line }: { line: CycleLineDisplay }) {
   if (line.state === 'payable') return null
-  const styles: Record<string, string> = {
-    excluded: 'bg-muted text-muted-foreground border-border',
-    deferred_out: 'bg-held/10 text-held border-held/20',
-    deferred_in: 'bg-suggestion/10 text-suggestion border-suggestion/20',
-    pending_ruling: 'bg-decision/10 text-decision border-decision/20',
+  const tone: Record<string, StatusTone> = {
+    excluded: 'neutral',
+    deferred_out: 'neutral',
+    deferred_in: 'neutral',
+    pending_ruling: 'pending',
   }
   const labels: Record<string, string> = {
     excluded: 'excluded',
@@ -24,11 +24,7 @@ function LineStateChip({ line }: { line: CycleLineDisplay }) {
     deferred_in: 'deferred in',
     pending_ruling: 'pending ruling',
   }
-  return (
-    <Badge variant="outline" className={cn('font-normal', styles[line.state])}>
-      {labels[line.state]}
-    </Badge>
-  )
+  return <StatusChip tone={tone[line.state] ?? 'neutral'}>{labels[line.state]}</StatusChip>
 }
 
 /** One figure in the totals strip, rendered as a quiet stat card. */
@@ -227,7 +223,8 @@ export function CycleDetail({
 
       <p className="text-meta px-6 py-5">
         This sheet is frozen — amounts, rates, and rulings are recorded as they were at pay time.
-        Corrections happen through new rulings, never edits.
+        Rates shown are the historical rate pinned at freeze, for reference only; the canonical rate
+        history lives on each person&apos;s profile. Corrections happen through new rulings, never edits.
       </p>
     </section>
   )

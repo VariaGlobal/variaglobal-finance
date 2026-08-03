@@ -16,7 +16,7 @@ import { DocumentsHub } from '@/components/records/documents-hub'
 import { MasterDetail, DetailPlaceholder } from '@/components/records/master-detail'
 import { PeopleHub } from '@/components/records/people-hub'
 import { PersonProfile } from '@/components/records/person-profile'
-import { PageHeader } from '@/components/records/records-bits'
+import { PageHeader, moneyHubSubtitles } from '@/components/records/records-bits'
 import { UploadDrawer } from '@/components/records/upload-drawer'
 import { useCounterparties, useCycles } from '@/lib/records-api/resources'
 import { prefetchSummaries } from '@/lib/records-api/summary-cache'
@@ -26,13 +26,15 @@ import { recordPeople } from '@/lib/fixtures/records/people'
 import { entities, users } from '@/lib/fixtures/workspace'
 import type { AppUser, Entity, FilterChip } from '@/lib/types'
 
+/* Records is organized around two questions: WHO are the parties, and how does
+   MONEY move between them. Documents is no longer a top-level tab — files open
+   in context from the record they belong to. */
 const recordsTabs = [
-  { id: 'people', number: '01', label: 'People' },
-  { id: 'counterparties', number: '02', label: 'Counterparties' },
-  { id: 'cycles', number: '03', label: 'Pay cycles' },
-  { id: 'banking', number: '04', label: 'Banking' },
-  { id: 'billing', number: '05', label: 'Billing' },
-  { id: 'documents', number: '06', label: 'Documents' },
+  { id: 'people', number: '01', label: 'People', group: 'Who' },
+  { id: 'counterparties', number: '02', label: 'Counterparties', group: 'Who' },
+  { id: 'cycles', number: '03', label: 'Pay cycles', group: 'Money' },
+  { id: 'billing', number: '04', label: 'Billing', group: 'Money' },
+  { id: 'banking', number: '05', label: 'Banking', group: 'Money' },
 ] as const
 
 const validTabs = new Set<string>(recordsTabs.map((t) => t.id))
@@ -109,6 +111,20 @@ function RecordsPageInner() {
     setActiveTab('cycles')
   }
 
+  /* Cross-link from a person's routing to the counterparty they're paid via.
+     Resolves by name so callers don't need to know counterparty ids. */
+  function handleOpenCounterpartyByName(name: string) {
+    const match = counterparties.find(
+      (c) =>
+        c.name.toLowerCase() === name.toLowerCase() ||
+        c.aliases?.some((a) => a.toLowerCase() === name.toLowerCase()),
+    )
+    if (!match) return
+    setOpenPersonId(null)
+    setOpenCounterpartyId(match.id)
+    setActiveTab('counterparties')
+  }
+
   function handleOpenEvidence(tab: string, openId?: string) {
     setOpenDocumentId(null)
     if (!validTabs.has(tab)) return
@@ -160,6 +176,14 @@ function RecordsPageInner() {
                 person={openPerson}
                 onBack={() => setOpenPersonId(null)}
                 onOpenCycle={handleOpenCycle}
+                onOpenCounterpartyByName={handleOpenCounterpartyByName}
+                canResolveCounterparty={(name) =>
+                  counterparties.some(
+                    (c) =>
+                      c.name.toLowerCase() === name.toLowerCase() ||
+                      c.aliases?.some((a) => a.toLowerCase() === name.toLowerCase()),
+                  )
+                }
               />
             ) : (
               <PeopleHub
@@ -201,6 +225,15 @@ function RecordsPageInner() {
                 <CounterpartyProfile
                   counterparty={openCounterparty}
                   onBack={() => setOpenCounterpartyId(null)}
+                  routedPeople={recordPeople.filter(
+                    (p) =>
+                      p.routing.mode === 'routed' &&
+                      (p.routing.routedVia?.toLowerCase() === openCounterparty.name.toLowerCase() ||
+                        openCounterparty.aliases?.some(
+                          (a) => a.toLowerCase() === p.routing.routedVia?.toLowerCase(),
+                        )),
+                  )}
+                  onOpenPerson={handleOpenPerson}
                 />
               ) : null
             }
@@ -222,6 +255,7 @@ function RecordsPageInner() {
             header={
               <PageHeader
                 title="Pay cycles"
+                eyebrow={`Money · ${moneyHubSubtitles.cycles}`}
                 count={cycles.length}
                 countNoun="cycle"
                 description="Frozen pay sheets — every line traces to a timesheet, a rate card, and a ruling."

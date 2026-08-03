@@ -40,17 +40,20 @@ const chipKindLabel: Record<FilterChip['kind'], string> = {
   status: 'status',
 }
 
-/** The three primary sections in the big horizontal menu. */
+/** Primary sections in the big horizontal menu. Records leads; Queue and
+    Analysis are still being designed and read as clearly secondary. */
 const primarySections = [
-  { id: 'analysis', number: '01', label: 'Analysis', href: '/analysis' },
-  { id: 'queue', number: '02', label: 'Queue', href: '/' },
-  { id: 'records', number: '03', label: 'Records', href: '/records' },
+  { id: 'records', number: '01', label: 'Records', href: '/records', soon: false },
+  { id: 'queue', number: '02', label: 'Queue', href: '/', soon: true },
+  { id: 'analysis', number: '03', label: 'Analysis', href: '/analysis', soon: true },
 ] as const
 
 export interface SubTab {
   id: string
   number: string
   label: string
+  /** Optional grouping label (e.g. "Who", "Money") shown once before the group. */
+  group?: string
 }
 
 interface TopNavProps {
@@ -125,20 +128,27 @@ export function TopNav({
                 onClick={() => {
                   if (!isActive) router.push(section.href)
                 }}
-                className={cn(
-                  'relative flex items-baseline gap-2 self-stretch px-3 pt-0.5 outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
-                  'transition-colors duration-150',
-                  isActive
-                    ? 'text-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                <span className="self-center font-mono text-[11px] tabular-nums text-muted-foreground/60">
-                  {section.number}
-                </span>
-                <span className="text-title self-center font-medium">
-                  {section.label}
-                </span>
+                  className={cn(
+                    'relative flex items-baseline gap-2 self-stretch px-3 pt-0.5 outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+                    'transition-colors duration-150',
+                    isActive
+                      ? 'text-foreground'
+                      : section.soon
+                        ? 'text-muted-foreground/50 hover:text-muted-foreground'
+                        : 'text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  <span className="self-center font-mono text-[11px] tabular-nums text-muted-foreground/60">
+                    {section.number}
+                  </span>
+                  <span className="text-title self-center font-medium">
+                    {section.label}
+                  </span>
+                  {section.soon && (
+                    <span className="self-center rounded-full border border-border px-1.5 py-px text-[9px] font-medium tracking-[0.06em] text-muted-foreground/60 uppercase">
+                      soon
+                    </span>
+                  )}
                 {/* Active: hairline underline, not an accent flood. */}
                 <span
                   aria-hidden
@@ -235,34 +245,49 @@ export function TopNav({
             aria-label={`${activeSection} sections`}
             className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
           >
-            {subTabs!.map((tab) => {
+            {subTabs!.map((tab, i) => {
               const isActive = tab.id === activeSubTab
+              /* Group boundary: label the first tab of each group, and draw a
+                 divider before every group after the first. */
+              const prevGroup = i > 0 ? subTabs![i - 1].group : undefined
+              const startsGroup = Boolean(tab.group) && tab.group !== prevGroup
               return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  onClick={() => onSubTabChange?.(tab.id)}
-                  className={cn(
-                    'relative flex shrink-0 items-baseline gap-1.5 px-2 pt-2 pb-2.5 text-sm whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
-                    isActive
-                      ? 'text-foreground'
-                      : 'text-muted-foreground hover:text-foreground',
+                <div key={tab.id} className="flex shrink-0 items-center">
+                  {startsGroup && (
+                    <>
+                      {i > 0 && (
+                        <span aria-hidden className="mx-2 h-4 w-px bg-border" />
+                      )}
+                      <span className="mr-2 text-[10px] font-medium tracking-[0.08em] text-muted-foreground/50 uppercase">
+                        {tab.group}
+                      </span>
+                    </>
                   )}
-                >
-                  <span className="font-mono text-[11px] tabular-nums text-muted-foreground/60">
-                    {tab.number}
-                  </span>
-                  {tab.label}
-                  <span
-                    aria-hidden
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => onSubTabChange?.(tab.id)}
                     className={cn(
-                      'absolute inset-x-2 bottom-0 h-px transition-colors duration-150',
-                      isActive ? 'bg-foreground' : 'bg-transparent',
+                      'relative flex shrink-0 items-baseline gap-1.5 px-2 pt-2 pb-2.5 text-sm whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+                      isActive
+                        ? 'text-foreground'
+                        : 'text-muted-foreground hover:text-foreground',
                     )}
-                  />
-                </button>
+                  >
+                    <span className="font-mono text-[11px] tabular-nums text-muted-foreground/60">
+                      {tab.number}
+                    </span>
+                    {tab.label}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'absolute inset-x-2 bottom-0 h-px transition-colors duration-150',
+                        isActive ? 'bg-foreground' : 'bg-transparent',
+                      )}
+                    />
+                  </button>
+                </div>
               )
             })}
           </div>

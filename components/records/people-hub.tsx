@@ -1,12 +1,12 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { RecordHover } from '@/components/records/record-hover'
 import {
   HubBody,
   HubCanvas,
   PageHeader,
   RecordsEmpty,
+  StatusChip,
   TableHead,
   rowClass,
 } from '@/components/records/records-bits'
@@ -89,21 +89,12 @@ export function PeopleHub({
                   </span>
                   <span className="flex flex-wrap items-center gap-1.5">
                     {missing.length === 0 ? (
-                      <Badge
-                        variant="outline"
-                        className="border-prepared/20 bg-prepared/10 font-normal text-prepared"
-                      >
-                        complete
-                      </Badge>
+                      <StatusChip tone="positive">complete</StatusChip>
                     ) : (
                       missing.map((d) => (
-                        <Badge
-                          key={d.kind}
-                          variant="outline"
-                          className="border-held/20 bg-held/10 font-normal text-held"
-                        >
+                        <StatusChip key={d.kind} tone="attention">
                           {d.kind} missing
-                        </Badge>
+                        </StatusChip>
                       ))
                     )}
                   </span>
