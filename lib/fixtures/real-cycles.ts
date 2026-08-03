@@ -8,9 +8,10 @@
  *           Mercury (The Matchbox) shows only $600 to Syed Arsalan Raza on Jul 21
  *           (txn 9f1d882e-8217-11f1-a4d1-a34b61ec221a, memo: June 1–15, 6h @ $100).
  *           Ruling (Ani, 2026-07-27): deferred to the Jul 31 cycle.
- *  RUL-002  "Subtract 3 hours paid directly to IM" (sheet note, June F4 / July F13)
- *           was never applied by any formula. Ruling: OPEN — engine models both
- *           options ($5,150 full / $4,850 with −3h) until Ani decides.
+ *  RUL-002  "Subtract 3 hours paid directly to IM" (sheet note, June F4 / July F13).
+ *           DECIDED 2026-07-30 by Sydney Allen (Slack, relayed by Ani): apply −3h —
+ *           $4,850.00 pays direct; $300.00 settles via the latest Interrupt Media
+ *           invoice. One-off; Arsalan no longer logs time with IM.
  *  RUL-003  Zach Crew is absent from the Rate Card both months; $15/h exists only
  *           on the June cycle tab. Ruling: tab rate is truth, backfilled.
  *  RUL-004  Abdullah, Kayla, Miles are absent from the 2026-06 Rate Card though
@@ -135,6 +136,7 @@ export const realCycleSpecs: CycleSpec[] = [
           { label: 'Pay full 51.5h ($5,150.00)', minutesDelta: 0 },
           { label: 'Apply −3h via Interrupt Media ($4,850.00)', minutesDelta: -180 },
         ],
+        decided: { optionLabel: 'Apply −3h via Interrupt Media ($4,850.00)', decidedBy: 'Sydney Allen (Slack, relayed by Ani Bisaria, 2026-07-30)' },
       },
     ],
   },

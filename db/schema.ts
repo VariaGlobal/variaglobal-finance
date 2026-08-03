@@ -66,6 +66,7 @@ export const rulings = pgTable('rulings', {
   evidence: text('evidence'),
   status: text('status').notNull(), // 'open' | 'decided'
   options: jsonb('options'),
+  decision: text('decision'),
   decidedBy: text('decided_by'),
   decidedAt: timestamp('decided_at'),
 })
@@ -108,4 +109,90 @@ export const relationships = pgTable('relationships', {
   effectiveFrom: text('effective_from'),
   effectiveTo: text('effective_to'),
   status: text('status').notNull(), // 'active' | 'ended' | 'prospect'
+})
+
+/** Taxonomy as data — vocabulary is editable; engines read behavior flags, never names. */
+export const relationshipRoles = pgTable('relationship_roles', {
+  id: text('id').primaryKey(),
+  label: text('label').notNull(),
+  moneyDirection: text('money_direction').notNull(), // 'in' | 'out' | 'both'
+  countsAsRevenue: boolean('counts_as_revenue').notNull().default(false),
+  isPayable: boolean('is_payable').notNull().default(false),
+  requiresContract: boolean('requires_contract').notNull().default(false),
+  description: text('description'),
+  active: boolean('active').notNull().default(true),
+})
+
+export const streamTypes = pgTable('stream_types', {
+  id: text('id').primaryKey(),
+  label: text('label').notNull(),
+  active: boolean('active').notNull().default(true),
+})
+
+export const expenseCategories = pgTable('expense_categories', {
+  id: text('id').primaryKey(),
+  label: text('label').notNull(),
+  active: boolean('active').notNull().default(true),
+})
+
+/** Source mirrors — converge to upstream on sync; our own facts never live here. */
+export const timeEntries = pgTable('time_entries', {
+  asanaGid: text('asana_gid').primaryKey(),
+  person: text('person').notNull(),
+  enteredOn: text('entered_on').notNull(),
+  minutes: integer('minutes').notNull(),
+  taskGid: text('task_gid'),
+  taskName: text('task_name'),
+  projectGid: text('project_gid'),
+  projectName: text('project_name'),
+  billableStatus: text('billable_status'),
+  approvalStatus: text('approval_status'),
+  createdAt: text('created_at'),
+  source: text('source').notNull().default('asana'),
+  syncedAt: timestamp('synced_at').notNull().defaultNow(),
+})
+
+export const bankTransactions = pgTable('bank_transactions', {
+  mercuryId: text('mercury_id').primaryKey(),
+  entity: text('entity').notNull(),
+  accountId: text('account_id'),
+  amountCents: integer('amount_cents').notNull(),
+  counterpartyName: text('counterparty_name'),
+  bankDescription: text('bank_description'),
+  externalMemo: text('external_memo'),
+  kind: text('kind'),
+  status: text('status').notNull(),
+  createdAt: text('created_at'),
+  postedAt: text('posted_at'),
+  glCode: text('gl_code'),
+  source: text('source').notNull().default('mercury'),
+  syncedAt: timestamp('synced_at').notNull().defaultNow(),
+})
+
+/** Sync log — the data source for Settings → Integrations health cards. */
+export const syncRuns = pgTable('sync_runs', {
+  id: serial('id').primaryKey(),
+  source: text('source').notNull(),
+  windowStart: text('window_start'),
+  windowEnd: text('window_end'),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  finishedAt: timestamp('finished_at'),
+  status: text('status').notNull(),
+  inserted: integer('inserted').default(0),
+  updated: integer('updated').default(0),
+  upstreamChanges: integer('upstream_changes').default(0),
+  errorDetail: text('error_detail'),
+  notes: text('notes'),
+})
+
+/** Our categorization layer over the bank mirror — append-only, corrections supersede. */
+export const transactionCategorizations = pgTable('transaction_categorizations', {
+  id: serial('id').primaryKey(),
+  mercuryId: text('mercury_id').notNull(),
+  counterpartyId: text('counterparty_id'),
+  category: text('category').notNull(),
+  note: text('note'),
+  taggedBy: text('tagged_by').notNull(),
+  taggedAt: timestamp('tagged_at').notNull().defaultNow(),
+  supersededBy: integer('superseded_by'),
 })

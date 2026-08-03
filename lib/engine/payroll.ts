@@ -28,7 +28,7 @@ export interface TimeBlock {
 
 export type Instruction =
   | { kind: 'defer'; id: string; person: string; originPeriodStart: string; targetCycleId: string; label: string; evidence?: string }
-  | { kind: 'open_ruling'; id: string; person: string; label: string; options: { label: string; minutesDelta: number }[] }
+  | { kind: 'open_ruling'; id: string; person: string; label: string; options: { label: string; minutesDelta: number }[]; decided?: { optionLabel: string; decidedBy: string } }
   | { kind: 'note'; id: string; person: string; originPeriodStart?: string; label: string; evidence?: string }
 
 export interface CycleSpec {
@@ -222,16 +222,32 @@ export function runPayroll(specs: CycleSpec[], ctx: EngineContext): CycleResult[
       (i): i is Extract<Instruction, { kind: 'open_ruling' }> => i.kind === 'open_ruling' && i.person === t.line.person,
     )
     if (ruling && t.line.rateCentsPerHour !== null) {
-      t.line.openRuling = {
-        id: ruling.id,
-        label: ruling.label,
-        options: ruling.options.map((o) => ({
-          label: o.label,
-          amountCents: amountCents(t.line.minutes + o.minutesDelta, t.line.rateCentsPerHour as number),
-        })),
+      if (ruling.decided) {
+        const opt = ruling.options.find((o) => o.label === ruling.decided?.optionLabel)
+        if (!opt) {
+          t.line.errors.push(`Ruling ${ruling.id} decided with unknown option "${ruling.decided.optionLabel}"`)
+          t.line.payable = false
+        } else {
+          const rate = t.line.rateCentsPerHour as number
+          t.line.minutes = t.line.minutes + opt.minutesDelta
+          t.line.hoursDisplay = formatHours(t.line.minutes)
+          t.line.amountCents = amountCents(t.line.minutes, rate)
+          t.line.payable = t.line.errors.length === 0
+          t.line.trace = `${t.line.hoursDisplay} × ${formatCents(rate)}/h = ${formatCents(t.line.amountCents)} (${ruling.id} decided: ${opt.label})`
+          t.line.notes.push(`${ruling.id} decided by ${ruling.decided.decidedBy}: ${opt.label}`)
+        }
+      } else {
+        t.line.openRuling = {
+          id: ruling.id,
+          label: ruling.label,
+          options: ruling.options.map((o) => ({
+            label: o.label,
+            amountCents: amountCents(t.line.minutes + o.minutesDelta, t.line.rateCentsPerHour as number),
+          })),
+        }
       }
     }
-    if (!t.line.openRuling) {
+    if (!t.line.openRuling && !t.line.payable) {
       target.warnings.push(
         `Deferred-in line for ${t.line.person} has no gating ruling — it is excluded from every total until one exists`,
       )
