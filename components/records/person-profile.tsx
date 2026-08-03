@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { ArrowLeftIcon } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { RecordHover } from '@/components/records/record-hover'
-import { HubCanvas, TableHead } from '@/components/records/records-bits'
+import { HubCanvas, StatusChip, TableHead } from '@/components/records/records-bits'
 import { cn } from '@/lib/utils'
 import { compAdjustments } from '@/lib/fixtures/records/people'
 import { cycles } from '@/lib/fixtures/records/cycles'
@@ -138,18 +137,9 @@ export function PersonProfile({ person, onBack, onOpenCycle }: PersonProfileProp
               <h2 className="text-title px-6 pt-7 pb-3 font-medium text-foreground">Compliance</h2>
               <div className="flex flex-wrap items-center gap-2 px-6 pb-8">
                 {person.complianceDocs.map((doc) => (
-                  <Badge
-                    key={doc.kind}
-                    variant="outline"
-                    className={cn(
-                      'font-normal',
-                      doc.status === 'signed'
-                        ? 'bg-prepared/10 text-prepared border-prepared/20'
-                        : 'bg-held/10 text-held border-held/20',
-                    )}
-                  >
+                  <StatusChip key={doc.kind} tone={doc.status === 'signed' ? 'positive' : 'attention'}>
                     {doc.kind} {doc.status}
-                  </Badge>
+                  </StatusChip>
                 ))}
               </div>
             </div>

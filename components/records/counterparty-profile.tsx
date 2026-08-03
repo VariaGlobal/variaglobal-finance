@@ -2,10 +2,14 @@
 
 import { useState } from 'react'
 import { ArrowLeftIcon } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { RecordHover } from '@/components/records/record-hover'
 import { RoleChip } from '@/components/records/counterparties-hub'
-import { LifecycleChip, TableHead } from '@/components/records/records-bits'
+import {
+  LifecycleChip,
+  StatusChip,
+  TableHead,
+  relationshipTone,
+} from '@/components/records/records-bits'
 import { entityName } from '@/lib/fixtures/workspace'
 import { cn } from '@/lib/utils'
 import { invoices } from '@/lib/fixtures/records/billing'
@@ -73,18 +77,7 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
               >
                 <div className="flex items-center justify-between gap-2">
                   <RoleChip role={rel.role} />
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      'font-normal',
-                      rel.status === 'active' &&
-                        'bg-prepared/10 text-prepared border-prepared/20',
-                      rel.status === 'dormant' && 'bg-held/10 text-held border-held/20',
-                      rel.status === 'ended' && 'bg-muted text-muted-foreground border-border',
-                    )}
-                  >
-                    {rel.status}
-                  </Badge>
+                  <StatusChip tone={relationshipTone(rel.status)}>{rel.status}</StatusChip>
                 </div>
                 <dl className="mt-3 flex flex-col gap-1.5">
                   <div className="flex items-baseline gap-3">
@@ -212,20 +205,9 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                   <h2 className="text-sm font-medium text-foreground">{contract.name}</h2>
                   <span className="text-meta">{contract.kind}</span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      'font-normal',
-                      contract.status === 'active' &&
-                        'bg-prepared/10 text-prepared border-prepared/20',
-                      contract.status === 'missing_terms' &&
-                        'bg-held/10 text-held border-held/20',
-                      contract.status === 'ended' &&
-                        'bg-muted text-muted-foreground border-border',
-                    )}
-                  >
+                  <StatusChip tone={relationshipTone(contract.status)}>
                     {contract.status.replace(/_/g, ' ')}
-                  </Badge>
+                  </StatusChip>
                 </div>
 
                 {contract.terms.length === 0 ? (

@@ -1,7 +1,6 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
-import { RecordsEmpty } from '@/components/records/records-bits'
+import { RecordsEmpty, StatusChip } from '@/components/records/records-bits'
 import { cn } from '@/lib/utils'
 import type { CycleDisplay } from '@/lib/fixtures/records/cycles'
 
@@ -56,17 +55,9 @@ export function CyclesHub({
               />
               <span className="flex items-center justify-between gap-2">
                 <span className="text-sm font-medium text-foreground">{cycle.periodLabel}</span>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'font-normal',
-                    cycle.status === 'paid'
-                      ? 'border-prepared/20 bg-prepared/10 text-prepared'
-                      : 'border-decision/20 bg-decision/10 text-decision',
-                  )}
-                >
+                <StatusChip tone={cycle.status === 'paid' ? 'positive' : 'pending'}>
                   {cycle.status === 'paid' ? 'paid' : 'to be paid'}
-                </Badge>
+                </StatusChip>
               </span>
               <span className="flex items-baseline justify-between gap-2">
                 <span className="font-mono text-base tabular-nums text-foreground">
