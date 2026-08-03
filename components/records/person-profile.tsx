@@ -16,6 +16,10 @@ interface PersonProfileProps {
   person: Person
   onBack: () => void
   onOpenCycle: (cycleId: string) => void
+  /** Jump to the counterparty this person is paid via (resolved by name). */
+  onOpenCounterpartyByName?: (name: string) => void
+  /** Whether that counterparty actually exists as a record (to decide link vs text). */
+  canResolveCounterparty?: (name: string) => boolean
 }
 
 /**
@@ -23,8 +27,19 @@ interface PersonProfileProps {
  * (rate history with effective dates, routing, adjustments). Rendered
  * full-width inside the framed canvas, replacing the People list.
  */
-export function PersonProfile({ person, onBack, onOpenCycle }: PersonProfileProps) {
+export function PersonProfile({
+  person,
+  onBack,
+  onOpenCycle,
+  onOpenCounterpartyByName,
+  canResolveCounterparty,
+}: PersonProfileProps) {
   const [tab, setTab] = useState<'overview' | 'compensation'>('overview')
+
+  const routedVia = person.routing.mode === 'routed' ? person.routing.routedVia : undefined
+  const routedViaLinkable = Boolean(
+    routedVia && onOpenCounterpartyByName && (canResolveCounterparty?.(routedVia) ?? false),
+  )
 
   const lines = cycles
     .flatMap((cycle) =>
@@ -50,11 +65,25 @@ export function PersonProfile({ person, onBack, onOpenCycle }: PersonProfileProp
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1.5">
             <h1 className="text-2xl font-medium tracking-tight text-foreground">{person.name}</h1>
             <span className="text-meta">{person.role}</span>
-            <span className="font-mono text-xs tabular-nums text-muted-foreground">
-              {person.routing.mode === 'routed'
-                ? `routed · ${person.routing.routedVia}`
-                : 'direct'}
-            </span>
+            {routedVia ? (
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                routed ·{' '}
+                {routedViaLinkable ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpenCounterpartyByName!(routedVia)}
+                    className="rounded-sm underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                    title={`Open ${routedVia} in Counterparties`}
+                  >
+                    {routedVia}
+                  </button>
+                ) : (
+                  routedVia
+                )}
+              </span>
+            ) : (
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">direct</span>
+            )}
           </div>
         </div>
 
@@ -183,9 +212,26 @@ export function PersonProfile({ person, onBack, onOpenCycle }: PersonProfileProp
 
               <h2 className="text-title px-6 pt-7 pb-3 font-medium text-foreground">Routing</h2>
               <p className="px-6 pb-2 font-mono text-xs tabular-nums text-muted-foreground">
-                {person.routing.mode === 'routed'
-                  ? `Paid via ${person.routing.routedVia} · bill rate ${person.routing.clientRateDisplay ?? '—'} (vendor-side)`
-                  : 'Paid directly · Mercury ACH'}
+                {routedVia ? (
+                  <>
+                    Paid via{' '}
+                    {routedViaLinkable ? (
+                      <button
+                        type="button"
+                        onClick={() => onOpenCounterpartyByName!(routedVia)}
+                        className="rounded-sm underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+                        title={`Open ${routedVia} in Counterparties`}
+                      >
+                        {routedVia}
+                      </button>
+                    ) : (
+                      routedVia
+                    )}{' '}
+                    · bill rate {person.routing.clientRateDisplay ?? '—'} (vendor-side)
+                  </>
+                ) : (
+                  'Paid directly · Mercury ACH'
+                )}
               </p>
 
               <h2 className="text-title px-6 pt-7 pb-3 font-medium text-foreground">Adjustments</h2>

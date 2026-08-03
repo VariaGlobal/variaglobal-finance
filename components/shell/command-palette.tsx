@@ -108,17 +108,23 @@ export function CommandPalette({
           {query.trim() === '' && (
             <>
               <CommandGroup heading="Go to">
-                <CommandItem onSelect={() => run(() => router.push('/analysis'))}>
-                  <BanknoteIcon />
-                  01 Analysis
+                <CommandItem onSelect={() => run(() => router.push('/records'))}>
+                  <UsersIcon />
+                  01 Records
                 </CommandItem>
                 <CommandItem onSelect={() => run(() => router.push('/'))}>
                   <InboxIcon />
                   02 Queue
+                  <span className="ml-auto text-[10px] tracking-wide text-muted-foreground/60 uppercase">
+                    soon
+                  </span>
                 </CommandItem>
-                <CommandItem onSelect={() => run(() => router.push('/records'))}>
-                  <UsersIcon />
-                  03 Records
+                <CommandItem onSelect={() => run(() => router.push('/analysis'))}>
+                  <BanknoteIcon />
+                  03 Analysis
+                  <span className="ml-auto text-[10px] tracking-wide text-muted-foreground/60 uppercase">
+                    soon
+                  </span>
                 </CommandItem>
                 <CommandItem onSelect={() => run(() => router.push('/settings'))}>
                   <SettingsIcon />

@@ -98,6 +98,7 @@ export function CountPill({
  */
 export function PageHeader({
   title,
+  eyebrow,
   count,
   countNoun,
   countNounPlural,
@@ -106,6 +107,8 @@ export function PageHeader({
   action,
 }: {
   title: string
+  /** Small group/context label above the title, e.g. "Money · what we owe people". */
+  eyebrow?: string
   count?: number
   countNoun?: string
   countNounPlural?: string
@@ -121,6 +124,11 @@ export function PageHeader({
       )}
     >
       <div className="flex min-w-0 flex-col gap-2">
+        {eyebrow && (
+          <span className="text-[11px] font-medium tracking-[0.06em] text-muted-foreground/70 uppercase">
+            {eyebrow}
+          </span>
+        )}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <h1 className="text-xl font-medium tracking-tight text-balance text-foreground md:text-2xl">
             {title}
@@ -259,7 +267,7 @@ export function rowClass(gridClassName: string, interactive = false) {
   )
 }
 
-/* ── Shared status vocabulary ─────────────────────────────────────────
+/* ── Shared status vocabulary ────────────────────────────────────────��
  * ONE chip language across every hub: the same tone always means the same
  * thing, so a green chip reads "settled / good" whether it's a paid invoice,
  * a matched bank row, a signed NDA, or an active relationship — and never

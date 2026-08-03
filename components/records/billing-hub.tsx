@@ -9,6 +9,7 @@ import {
   PageHeader,
   RecordsEmpty,
   TableHead,
+  moneyHubSubtitles,
   rowClass,
 } from '@/components/records/records-bits'
 import type { Counterparty, Invoice } from '@/lib/types'
@@ -46,6 +47,7 @@ export function BillingHub({
       <section aria-label="Billing" className="flex min-h-0 flex-1 flex-col">
         <PageHeader
           title="Billing"
+          eyebrow={`Money · ${moneyHubSubtitles.billing}`}
           count={invoices.length}
           countNoun="invoice"
           description="Invoices and the payments that settle them, linked line by line to bank rows. Sample data until invoices land in the database."

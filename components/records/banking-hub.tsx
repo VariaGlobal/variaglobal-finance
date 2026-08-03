@@ -10,6 +10,7 @@ import {
   RecordsEmpty,
   TableHead,
   TableSkeleton,
+  moneyHubSubtitles,
   rowClass,
 } from '@/components/records/records-bits'
 import { cn } from '@/lib/utils'
@@ -59,6 +60,7 @@ export function BankingHub({
       <section aria-label="Banking" className="flex min-h-0 flex-1 flex-col">
         <PageHeader
           title="Banking"
+          eyebrow={`Money · ${moneyHubSubtitles.banking}`}
           count={transactions.length}
           countNoun="transaction"
           description="Mercury activity for this entity — matched to records or waiting to be."

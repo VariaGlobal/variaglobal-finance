@@ -13,13 +13,16 @@ import {
 import { entityName } from '@/lib/fixtures/workspace'
 import { cn } from '@/lib/utils'
 import { invoices } from '@/lib/fixtures/records/billing'
-import type { Counterparty } from '@/lib/types'
+import type { Counterparty, Person } from '@/lib/types'
 
 const invoiceGrid = 'grid-cols-[110px_minmax(200px,2fr)_110px_100px]'
 
 interface CounterpartyProfileProps {
   counterparty: Counterparty
   onBack: () => void
+  /** People whose pay is routed through this counterparty (the reverse link). */
+  routedPeople?: Person[]
+  onOpenPerson?: (personId: string) => void
 }
 
 /**
@@ -28,7 +31,12 @@ interface CounterpartyProfileProps {
  * entity, stream type, status, effective dates), then Overview and
  * Contracts tabs.
  */
-export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfileProps) {
+export function CounterpartyProfile({
+  counterparty,
+  onBack,
+  routedPeople = [],
+  onOpenPerson,
+}: CounterpartyProfileProps) {
   const [tab, setTab] = useState<'overview' | 'contracts'>('overview')
 
   const cpInvoices = invoices.filter((inv) => inv.clientId === counterparty.id)
@@ -133,6 +141,36 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
 
       {tab === 'overview' && (
         <div className="animate-detail-in">
+          {routedPeople.length > 0 && (
+            <>
+              <h2 className="text-title px-6 pt-6 pb-1 font-medium text-foreground">
+                People paid via this counterparty
+              </h2>
+              <p className="text-meta px-6 pb-3">
+                We bill the client, then pay these people through {counterparty.name}.
+              </p>
+              <div role="list" className="pb-2">
+                {routedPeople.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="listitem"
+                    onClick={() => onOpenPerson?.(p.id)}
+                    className="flex w-full min-h-12 items-center justify-between gap-3 border-b border-border px-6 py-2.5 text-left transition-colors duration-150 hover:bg-foreground/[0.03] focus-visible:bg-foreground/[0.03] focus-visible:outline-none"
+                  >
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate text-sm font-medium text-foreground">{p.name}</span>
+                      <span className="text-meta truncate">{p.role}</span>
+                    </span>
+                    <span className="shrink-0 font-mono text-xs tabular-nums text-muted-foreground">
+                      bill {p.routing.clientRateDisplay ?? '—'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
           <h2 className="text-title px-6 pt-6 pb-3 font-medium text-foreground">Invoices</h2>
           {cpInvoices.length === 0 ? (
             <p className="text-meta px-6 pb-6">No invoices on record.</p>
