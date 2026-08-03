@@ -173,7 +173,7 @@ const fixtureTransactionViews: TransactionView[] = fallbackBankTransactions.map(
   amountDisplay: t.amount.display,
   direction: t.direction,
   account: t.account,
-  category: undefined,
+  category: t.category,
   matched: t.matched,
 }))
 

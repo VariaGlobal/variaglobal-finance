@@ -12,6 +12,14 @@
 import type { BankTransaction } from '@/lib/types'
 import type { SyncSourceView } from '@/lib/records-api/resources'
 
+/**
+ * The live /api/records/transactions endpoint returns a `category` used for
+ * Banking chips (e.g. owner_draw, artist_royalty_payout). The base
+ * BankTransaction type predates that field, so we widen it here for the
+ * labeled fallback rows.
+ */
+type FallbackBankTransaction = BankTransaction & { category?: string }
+
 function money(cents: number) {
   const sign = cents < 0 ? '-' : ''
   const abs = Math.abs(cents)
@@ -21,7 +29,7 @@ function money(cents: number) {
 }
 
 /** Labeled fallback bank rows (mirror the real Mercury facts). */
-export const fallbackBankTransactions: BankTransaction[] = [
+export const fallbackBankTransactions: FallbackBankTransaction[] = [
   {
     id: 'bt-jul27-hubspot',
     account: 'The Matchbox checking',
@@ -32,6 +40,7 @@ export const fallbackBankTransactions: BankTransaction[] = [
     createdAt: 'Jul 24',
     postedAt: 'Jul 27',
     matched: false,
+    category: 'commission_payout',
   },
   {
     id: 'bt-jul26-ecom',
@@ -43,6 +52,7 @@ export const fallbackBankTransactions: BankTransaction[] = [
     createdAt: 'Jul 25',
     postedAt: 'Jul 26',
     matched: true,
+    category: 'client_payment',
   },
   {
     id: 'bt-jul21-arsalan',
@@ -55,6 +65,7 @@ export const fallbackBankTransactions: BankTransaction[] = [
     createdAt: 'Jul 21',
     postedAt: 'Jul 21',
     matched: true,
+    category: 'payroll',
   },
   {
     id: 'bt-jul15-payroll',
@@ -66,6 +77,7 @@ export const fallbackBankTransactions: BankTransaction[] = [
     createdAt: 'Jul 15',
     postedAt: 'Jul 15',
     matched: true,
+    category: 'payroll',
   },
   {
     id: 'bt-jul14-celigo',
@@ -77,6 +89,7 @@ export const fallbackBankTransactions: BankTransaction[] = [
     createdAt: 'Jul 13',
     postedAt: 'Jul 14',
     matched: true,
+    category: 'client_payment',
   },
   {
     id: 'bt-jul10-im',
@@ -88,6 +101,7 @@ export const fallbackBankTransactions: BankTransaction[] = [
     createdAt: 'Jul 9',
     postedAt: 'Jul 10',
     matched: true,
+    category: 'vendor_payment',
   },
   {
     id: 'bt-jul08-spyll',
@@ -99,6 +113,7 @@ export const fallbackBankTransactions: BankTransaction[] = [
     createdAt: 'Jul 7',
     postedAt: 'Jul 8',
     matched: false,
+    category: 'artist_royalty_payout',
   },
   {
     id: 'bt-jul05-maxwell',
@@ -110,6 +125,7 @@ export const fallbackBankTransactions: BankTransaction[] = [
     createdAt: 'Jul 3',
     postedAt: 'Jul 5',
     matched: true,
+    category: 'client_payment',
   },
 ]
 

@@ -63,7 +63,7 @@ function IntegrationCard({ integration }: { integration: SyncSourceView }) {
         </div>
         <MiniToggle
           on={!paused}
-          onLabel="Live"
+          onLabel="Syncing"
           offLabel="Paused"
           ariaLabel={`${integration.name} sync ${paused ? 'paused' : 'live'}`}
           onToggle={() => {
