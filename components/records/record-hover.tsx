@@ -40,8 +40,8 @@ export function RecordHover({ recordId, children, className, onClick }: RecordHo
   if (!summary) return trigger
 
   return (
-    <HoverCard delay={0} closeDelay={80}>
-      <HoverCardTrigger render={trigger} />
+    <HoverCard>
+      <HoverCardTrigger render={trigger} delay={0} closeDelay={80} />
       <HoverCardContent side="bottom" align="start" className="w-80 p-0">
         {/* Header: record type + name */}
         <div className="flex items-baseline gap-2 border-b border-border px-3 py-2">
