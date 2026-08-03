@@ -275,3 +275,39 @@ export async function getSummary(type: string, id: string): Promise<SummaryRow[]
   }
   return []
 }
+
+export interface InvoiceOut {
+  id: string
+  entity: string
+  source: string
+  number: string | null
+  status: string | null
+  counterpartyId: string | null
+  counterparty: string
+  amount: string | null
+  balance: string | null
+  invoiceDate: string | null
+  dueDate: string | null
+}
+
+export async function getInvoices(entity?: string): Promise<InvoiceOut[]> {
+  const db = getDb()
+  const [rows, cps] = await Promise.all([db.select().from(s.invoices), db.select().from(s.counterparties)])
+  const names = new Map(cps.map((c) => [c.id, c.name]))
+  return rows
+    .filter((r) => !entity || r.entity === entity)
+    .sort((a, b) => (b.invoiceDate ?? '').localeCompare(a.invoiceDate ?? ''))
+    .map((r) => ({
+      id: r.hsId,
+      entity: r.entity,
+      source: r.source,
+      number: r.number,
+      status: r.status,
+      counterpartyId: r.counterpartyId,
+      counterparty: (r.counterpartyId ? names.get(r.counterpartyId) : null) ?? r.counterpartyRaw ?? '—',
+      amount: r.amountBilledCents === null ? null : formatCents(r.amountBilledCents),
+      balance: r.balanceDueCents === null ? null : formatCents(r.balanceDueCents),
+      invoiceDate: r.invoiceDate,
+      dueDate: r.dueDate,
+    }))
+}

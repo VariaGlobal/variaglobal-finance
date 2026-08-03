@@ -34,6 +34,10 @@ const DDL: string[] = [
   `CREATE TABLE IF NOT EXISTS sync_runs (id serial PRIMARY KEY, source text NOT NULL, window_start text, window_end text, started_at timestamp NOT NULL DEFAULT now(), finished_at timestamp, status text NOT NULL, inserted integer DEFAULT 0, updated integer DEFAULT 0, upstream_changes integer DEFAULT 0, error_detail text, notes text)`,
   `CREATE TABLE IF NOT EXISTS transaction_categorizations (id serial PRIMARY KEY, mercury_id text NOT NULL, counterparty_id text, category text NOT NULL, note text, tagged_by text NOT NULL, tagged_at timestamp NOT NULL DEFAULT now(), superseded_by integer)`,
   `CREATE INDEX IF NOT EXISTS txn_cat_mercury_idx ON transaction_categorizations (mercury_id)`,
+  `CREATE TABLE IF NOT EXISTS record_notes (id serial PRIMARY KEY, record_type text NOT NULL, record_id text NOT NULL, note text NOT NULL, author text NOT NULL, created_at timestamp NOT NULL DEFAULT now(), superseded_by integer)`,
+  `CREATE INDEX IF NOT EXISTS record_notes_target_idx ON record_notes (record_type, record_id)`,
+  `CREATE TABLE IF NOT EXISTS invoices (hs_id text PRIMARY KEY, entity text NOT NULL DEFAULT 'the-matchbox', source text NOT NULL DEFAULT 'hubspot', number text, status text, counterparty_id text, counterparty_raw text, amount_billed_cents integer, balance_due_cents integer, currency text, invoice_date text, due_date text, raw jsonb, synced_at timestamp NOT NULL DEFAULT now())`,
+  `CREATE TABLE IF NOT EXISTS invoice_payments (hs_id text PRIMARY KEY, entity text NOT NULL DEFAULT 'the-matchbox', source text NOT NULL DEFAULT 'hubspot', customer_raw text, counterparty_id text, gross_cents integer, fees_cents integer, net_cents integer, payout_date text, payment_date text, status text, raw jsonb, synced_at timestamp NOT NULL DEFAULT now())`,
 ]
 
 const slugify = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
