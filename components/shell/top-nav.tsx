@@ -8,6 +8,7 @@ import {
   ChevronsUpDownIcon,
   MoonIcon,
   SearchIcon,
+  SparklesIcon,
   SunIcon,
   XIcon,
 } from 'lucide-react'
@@ -65,6 +66,7 @@ interface TopNavProps {
   user: AppUser
   onUserChange: (user: AppUser) => void
   onOpenPalette: () => void
+  onOpenAsk: () => void
   /** Sub-tabs for the active section. Omit (or empty) to hide the row. */
   subTabs?: SubTab[]
   activeSubTab?: string
@@ -80,6 +82,7 @@ export function TopNav({
   user,
   onUserChange,
   onOpenPalette,
+  onOpenAsk,
   subTabs,
   activeSubTab,
   onSubTabChange,
@@ -194,6 +197,19 @@ export function TopNav({
             className="gap-1.5 text-muted-foreground"
           >
             <Kbd>⌘K</Kbd>
+          </Button>
+
+          {/* Ask — chat over your records */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onOpenAsk}
+            aria-keyshortcuts="Meta+J Control+J"
+            className="gap-1.5"
+          >
+            <SparklesIcon data-icon="inline-start" className="size-3.5" />
+            Ask
+            <Kbd className="max-sm:hidden">⌘J</Kbd>
           </Button>
 
           {/* Theme toggle */}

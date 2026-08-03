@@ -1,9 +1,23 @@
 /**
- * Records → Billing. Invoices across the full lifecycle plus payments
- * received, linked to invoices and bank rows. Conforms to lib/types.ts.
+ * Records → Billing. Invoices across the full lifecycle plus payments,
+ * split by direction: receivable (owed to us) and payable (we owe vendors).
+ * Conforms to lib/types.ts; `direction` is an additive field carried on a
+ * thin extension so AR and AP never share a table.
+ *
+ * SAMPLE DATA — Billing renders these bundled fixtures (and shows the
+ * "sample data" chip) until real invoices land in the database. Due dates are
+ * deliberately spread across aging buckets relative to the app date so the
+ * redesign exercises every state; every counterparty id is real.
  */
 
 import type { Invoice, Payment } from '@/lib/types'
+
+export type BillingDirection = 'receivable' | 'payable'
+
+/** Invoice plus which way the money flows. */
+export interface BillingInvoice extends Invoice {
+  direction: BillingDirection
+}
 
 function money(cents: number) {
   const sign = cents < 0 ? '-' : ''
@@ -13,9 +27,12 @@ function money(cents: number) {
   return { display: `${sign}$${dollars}.${rem}`, cents, currency: 'USD' as const }
 }
 
-export const invoices: Invoice[] = [
+/* ── Receivable — invoices clients owe us ─────────────────────────────── */
+
+const receivable: BillingInvoice[] = [
   {
     id: 'inv-ecmay3126',
+    direction: 'receivable',
     clientId: 'ecommission',
     number: 'ECMay3126',
     status: 'paid',
@@ -29,6 +46,7 @@ export const invoices: Invoice[] = [
   },
   {
     id: 'inv-ecjun3026',
+    direction: 'receivable',
     clientId: 'ecommission',
     number: 'ECJun3026',
     status: 'sent',
@@ -42,6 +60,7 @@ export const invoices: Invoice[] = [
   },
   {
     id: 'inv-mxjun2026',
+    direction: 'receivable',
     clientId: 'maxwell-social',
     number: 'MXJun2026',
     status: 'partially_paid',
@@ -54,6 +73,7 @@ export const invoices: Invoice[] = [
   },
   {
     id: 'inv-celjul2026',
+    direction: 'receivable',
     clientId: 'celigo',
     number: 'CELJul2026',
     status: 'paid',
@@ -65,7 +85,48 @@ export const invoices: Invoice[] = [
     dueAt: 'Jul 15',
   },
   {
+    id: 'inv-celmay2026',
+    direction: 'receivable',
+    clientId: 'celigo',
+    number: 'CELMay2026',
+    status: 'sent',
+    lines: [
+      { id: 'inv-celmay2026-1', description: 'Monthly retainer · May', amount: money(750000) },
+    ],
+    total: money(750000),
+    issuedAt: 'May 20',
+    dueAt: 'Jun 20',
+  },
+  {
+    id: 'inv-rbjul2026',
+    direction: 'receivable',
+    clientId: 'rebld-ai',
+    number: 'RBJul2026',
+    status: 'sent',
+    lines: [
+      { id: 'inv-rbjul2026-1', description: 'Ad Spend management · Jul', amount: money(280000) },
+      { id: 'inv-rbjul2026-2', description: 'Creative testing add-on', amount: money(40000) },
+    ],
+    total: money(320000),
+    issuedAt: 'Jul 24',
+    dueAt: 'Aug 22',
+  },
+  {
+    id: 'inv-pfmar2026',
+    direction: 'receivable',
+    clientId: 'pineapple-family',
+    number: 'PFMar2026',
+    status: 'sent',
+    lines: [
+      { id: 'inv-pfmar2026-1', description: 'Hourly · Mar · 9.0h', amount: money(180000) },
+    ],
+    total: money(180000),
+    issuedAt: 'Mar 31',
+    dueAt: 'May 25',
+  },
+  {
     id: 'inv-pfjul2026',
+    direction: 'receivable',
     clientId: 'pineapple-family',
     number: 'PFJul2026',
     status: 'disputed',
@@ -79,6 +140,7 @@ export const invoices: Invoice[] = [
   },
   {
     id: 'inv-ecjul3126',
+    direction: 'receivable',
     clientId: 'ecommission',
     number: 'ECJul3126',
     status: 'draft',
@@ -90,6 +152,7 @@ export const invoices: Invoice[] = [
   },
   {
     id: 'inv-mxapr2026',
+    direction: 'receivable',
     clientId: 'maxwell-social',
     number: 'MXApr2026',
     status: 'void',
@@ -100,6 +163,52 @@ export const invoices: Invoice[] = [
     issuedAt: 'Apr 30',
   },
 ]
+
+/* ── Payable — vendor bills we owe ────────────────────────────────────── */
+
+const payable: BillingInvoice[] = [
+  {
+    id: 'inv-im-jun2026',
+    direction: 'payable',
+    clientId: 'interrupt-media',
+    number: 'IM-2026-06',
+    status: 'paid',
+    lines: [
+      { id: 'inv-im-jun2026-1', description: 'Vendor settlement · Jun · Tess Fazio 11.0h', amount: money(137500) },
+    ],
+    total: money(137500),
+    issuedAt: 'Jul 1',
+    dueAt: 'Jul 15',
+  },
+  {
+    id: 'inv-im-jul2026',
+    direction: 'payable',
+    clientId: 'interrupt-media',
+    number: 'IM-2026-07',
+    status: 'sent',
+    lines: [
+      { id: 'inv-im-jul2026-1', description: 'Vendor settlement · Jul · Tess Fazio 16.5h', amount: money(206250) },
+    ],
+    total: money(206250),
+    issuedAt: 'Aug 1',
+    dueAt: 'Aug 15',
+  },
+  {
+    id: 'inv-hs-jul2026',
+    direction: 'payable',
+    clientId: 'hubspot',
+    number: 'HS-INV-4471',
+    status: 'sent',
+    lines: [
+      { id: 'inv-hs-jul2026-1', description: 'Marketing Hub Pro · Jul seats', amount: money(89000) },
+    ],
+    total: money(89000),
+    issuedAt: 'Jul 14',
+    dueAt: 'Jul 28',
+  },
+]
+
+export const invoices: BillingInvoice[] = [...receivable, ...payable]
 
 export interface PaymentDisplay extends Payment {
   invoiceNumber?: string
@@ -137,5 +246,15 @@ export const payments: PaymentDisplay[] = [
     method: 'Mercury ACH',
     bankTransactionId: 'bt-jul05-maxwell',
     bankRowLabel: 'MAXWELL SOCIAL · posted Jul 5',
+  },
+  {
+    id: 'pay-im-jun2026',
+    invoiceId: 'inv-im-jun2026',
+    invoiceNumber: 'IM-2026-06',
+    amount: money(137500),
+    receivedAt: 'Jul 10',
+    method: 'Mercury ACH',
+    bankTransactionId: 'bt-jul10-im',
+    bankRowLabel: 'INTERRUPT MEDIA LLC · posted Jul 10',
   },
 ]

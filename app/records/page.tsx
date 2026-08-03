@@ -296,6 +296,7 @@ function RecordsPageInner() {
             payments={payments}
             counterparties={counterparties}
             action={uploadButton}
+            onOpenBanking={() => handleTabChange('banking')}
           />
         )}
 

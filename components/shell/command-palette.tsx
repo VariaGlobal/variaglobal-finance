@@ -6,9 +6,11 @@ import {
   BanknoteIcon,
   BookmarkIcon,
   BuildingIcon,
+  CornerDownLeftIcon,
   InboxIcon,
   MoonIcon,
   SettingsIcon,
+  SparklesIcon,
   SunIcon,
   UsersIcon,
 } from 'lucide-react'
@@ -33,6 +35,8 @@ interface CommandPaletteProps {
   onOpenChange: (open: boolean) => void
   onEntityChange: (entity: Entity) => void
   onChipsChange: (chips: FilterChip[]) => void
+  /** Hand the current query to the Ask panel (one brain, two doors). */
+  onAskAI: (query: string) => void
 }
 
 export function CommandPalette({
@@ -40,6 +44,7 @@ export function CommandPalette({
   onOpenChange,
   onEntityChange,
   onChipsChange,
+  onAskAI,
 }: CommandPaletteProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const router = useRouter()
@@ -103,6 +108,23 @@ export function CommandPalette({
               ))}
             </CommandGroup>
           ))}
+
+          {/* Ask AI hand-off — bottom of results. ⌘K is instant deterministic
+              search; this passes the same query to the records brain. */}
+          {query.trim() !== '' && (
+            <CommandGroup heading="Ask">
+              <CommandItem
+                value="__ask_ai__"
+                onSelect={() => run(() => onAskAI(query.trim()))}
+              >
+                <SparklesIcon />
+                <span className="truncate">
+                  Ask AI: <span className="text-muted-foreground">{query.trim()}</span>
+                </span>
+                <CornerDownLeftIcon className="ml-auto size-3.5 text-muted-foreground" />
+              </CommandItem>
+            </CommandGroup>
+          )}
 
           {/* Static commands — shown when not searching records. */}
           {query.trim() === '' && (
