@@ -52,17 +52,7 @@ export function BankingHub({
   action?: React.ReactNode
 }) {
   const { data: transactions, source, loading } = useTransactions(entity)
-
-  if (!loading && transactions.length === 0) {
-    return (
-      <HubCanvas>
-        <RecordsEmpty
-          title="No bank activity on record for this entity."
-          subline="Upload a Mercury statement and every row lands here — matched or waiting to be."
-        />
-      </HubCanvas>
-    )
-  }
+  const isEmpty = !loading && transactions.length === 0
 
   return (
     <HubCanvas>
@@ -72,9 +62,15 @@ export function BankingHub({
           count={transactions.length}
           countNoun="transaction"
           description="Mercury activity for this entity — matched to records or waiting to be."
-          source={source}
+          source={loading || isEmpty ? undefined : source}
           action={action}
         />
+        {isEmpty ? (
+          <RecordsEmpty
+            title="No bank activity on record for this entity."
+            subline="Upload a Mercury statement and every row lands here — matched or waiting to be. Try switching entity in the top bar."
+          />
+        ) : (
         <HubBody>
           <TableHead
             gridClassName={grid}
@@ -123,6 +119,7 @@ export function BankingHub({
             </div>
           )}
         </HubBody>
+        )}
       </section>
     </HubCanvas>
   )

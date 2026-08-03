@@ -41,7 +41,7 @@ export default function AnalysisPage() {
       activeSubTab={activeTab}
       onSubTabChange={setActiveTab}
     >
-      <div className="flex min-h-full flex-col">
+      <div key={activeTab} className="flex min-h-full flex-1 flex-col">
         <HubPlaceholder
           title={`${tab.label} — every number, explained.`}
           subline={sublines[tab.id]}

@@ -229,11 +229,11 @@ export function TopNav({
 
       {/* Row 2: active section's sub-tabs · filter tools */}
       {showSubTabRow && (
-        <div className="flex items-center gap-4 px-5">
+        <div className="flex items-center gap-4 border-b border-border px-5">
           <div
             role="tablist"
             aria-label={`${activeSection} sections`}
-            className="flex items-center gap-1 overflow-x-auto"
+            className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto"
           >
             {subTabs!.map((tab) => {
               const isActive = tab.id === activeSubTab
@@ -245,7 +245,7 @@ export function TopNav({
                   aria-selected={isActive}
                   onClick={() => onSubTabChange?.(tab.id)}
                   className={cn(
-                    'relative flex shrink-0 items-baseline gap-2 px-2.5 pt-2 pb-2.5 text-sm transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+                    'relative flex shrink-0 items-baseline gap-1.5 px-2 pt-2 pb-2.5 text-sm whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
                     isActive
                       ? 'text-foreground'
                       : 'text-muted-foreground hover:text-foreground',
@@ -258,7 +258,7 @@ export function TopNav({
                   <span
                     aria-hidden
                     className={cn(
-                      'absolute inset-x-2.5 bottom-0 h-px transition-colors duration-150',
+                      'absolute inset-x-2 bottom-0 h-px transition-colors duration-150',
                       isActive ? 'bg-foreground' : 'bg-transparent',
                     )}
                   />
@@ -267,9 +267,9 @@ export function TopNav({
             })}
           </div>
 
-          <div className="ml-auto flex items-center gap-2 py-1.5">
+          <div className="ml-auto flex shrink-0 items-center gap-2 py-1.5">
             {/* Plain-English filter input */}
-            <div className="relative flex h-8 w-72 items-center gap-2 rounded-md border border-input bg-card px-2.5 transition-colors duration-150 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 max-md:hidden">
+            <div className="relative flex h-8 w-56 items-center gap-2 rounded-md border border-input bg-card px-2.5 transition-colors duration-150 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 lg:w-72 max-md:hidden">
               <SearchIcon className="size-3.5 shrink-0 text-muted-foreground" />
               <input
                 value={filterText}
