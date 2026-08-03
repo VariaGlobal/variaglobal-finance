@@ -37,10 +37,10 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
         <button
           type="button"
           onClick={onBack}
-          className="mb-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground"
+          className="mb-3 hidden items-center gap-1.5 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground md:inline-flex"
         >
           <ArrowLeftIcon className="size-3.5" />
-          Counterparties
+          Clear selection
         </button>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
           <h1 className="text-lg font-medium tracking-tight text-foreground">

@@ -5,6 +5,59 @@
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import type { DataSource } from '@/lib/records-api/types'
+
+/**
+ * "Sample data" chip — shown in a hub header whenever it is rendering
+ * bundled fixtures instead of live API data. Mock data must never be
+ * mistaken for real records, so this is deliberately conspicuous.
+ */
+export function SampleDataChip({ source }: { source: DataSource }) {
+  if (source === 'live') return null
+  return (
+    <Badge
+      variant="outline"
+      className="gap-1.5 border-decision/30 bg-decision/10 font-normal text-decision"
+      title="This hub is showing bundled sample data because the live API is unavailable."
+    >
+      <span aria-hidden className="size-1.5 rounded-full bg-decision" />
+      sample data
+    </Badge>
+  )
+}
+
+/** Skeleton rows for a hairline table while a live fetch is in flight. */
+export function TableSkeleton({
+  gridClassName,
+  rows = 6,
+  cols,
+}: {
+  gridClassName: string
+  rows?: number
+  cols: number
+}) {
+  return (
+    <div role="status" aria-label="Loading records" aria-live="polite">
+      {Array.from({ length: rows }).map((_, r) => (
+        <div
+          key={r}
+          className={cn(
+            'grid min-h-12 items-center gap-3 border-b border-border px-5 py-2.5',
+            gridClassName,
+          )}
+        >
+          {Array.from({ length: cols }).map((__, c) => (
+            <Skeleton
+              key={c}
+              className={cn('h-3.5', c === 0 ? 'w-2/3' : 'w-1/2', c > 0 && 'justify-self-end')}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 /** Editorial empty state — quiet oversized headline + mono subline. */
 export function RecordsEmpty({ title, subline }: { title: string; subline: string }) {
@@ -26,6 +79,7 @@ export function HubHeader({
   count,
   countNoun,
   countNounPlural,
+  source,
   children,
 }: {
   title: string
@@ -33,15 +87,18 @@ export function HubHeader({
   countNoun: string
   /** Irregular plural, e.g. "counterparties". Defaults to countNoun + "s". */
   countNounPlural?: string
+  /** When provided, renders the sample-data chip if source is 'fallback'. */
+  source?: DataSource
   children?: React.ReactNode
 }) {
   return (
-    <div className="flex items-center justify-between px-5 pt-6 pb-4">
+    <div className="flex items-center justify-between gap-3 px-5 pt-6 pb-4">
       <div className="flex items-baseline gap-3">
         <h1 className="text-lg font-medium tracking-tight text-foreground">{title}</h1>
         <span className="font-mono text-xs tabular-nums text-muted-foreground">
           {count} {count === 1 ? countNoun : (countNounPlural ?? `${countNoun}s`)}
         </span>
+        {source && <SampleDataChip source={source} />}
       </div>
       {children}
     </div>

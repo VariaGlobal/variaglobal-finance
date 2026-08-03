@@ -49,7 +49,7 @@ export function CycleDetail({
     <section aria-label={`Pay cycle ${cycle.periodLabel}`}>
       {/* Frozen-sheet header */}
       <div className="flex flex-col gap-4 px-5 pt-6 pb-5">
-        <div>
+        <div className="hidden md:block">
           <Button
             variant="ghost"
             size="sm"
@@ -57,7 +57,7 @@ export function CycleDetail({
             className="-ml-2 text-muted-foreground"
           >
             <ArrowLeftIcon data-icon="inline-start" />
-            Pay cycles
+            Clear selection
           </Button>
         </div>
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">

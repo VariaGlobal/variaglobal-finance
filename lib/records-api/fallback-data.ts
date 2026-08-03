@@ -1,11 +1,16 @@
 /**
- * Records → Banking. Conforms to lib/types.ts BankTransaction.
- * Includes the real Mercury facts referenced by rulings: the $600
- * Arsalan catch-up (txn 9f1d882e…) and the $18,500 eCommission
- * deposit matched to ECMay3126.
+ * Fallback data for the live Records API.
+ *
+ * These are NOT primary fixtures — they exist solely so that Banking and
+ * Settings → Integrations keep rendering when the live endpoints
+ * (/api/records/transactions, /api/records/sync-health) are unavailable.
+ * Whenever a hub renders this data, it MUST show the "sample data" chip so it
+ * is never mistaken for real records. The retired standalone banking-rows and
+ * sync-card fixtures were consolidated here as the single labeled fallback.
  */
 
 import type { BankTransaction } from '@/lib/types'
+import type { SyncSourceView } from '@/lib/records-api/resources'
 
 function money(cents: number) {
   const sign = cents < 0 ? '-' : ''
@@ -15,7 +20,8 @@ function money(cents: number) {
   return { display: `${sign}$${dollars}.${rem}`, cents, currency: 'USD' as const }
 }
 
-export const bankTransactions: BankTransaction[] = [
+/** Labeled fallback bank rows (mirror the real Mercury facts). */
+export const fallbackBankTransactions: BankTransaction[] = [
   {
     id: 'bt-jul27-hubspot',
     account: 'The Matchbox checking',
@@ -104,5 +110,53 @@ export const bankTransactions: BankTransaction[] = [
     createdAt: 'Jul 3',
     postedAt: 'Jul 5',
     matched: true,
+  },
+]
+
+/** Labeled fallback sync sources for Settings → Integrations. */
+export const fallbackSyncSources: SyncSourceView[] = [
+  {
+    id: 'mercury',
+    name: 'Mercury',
+    scope: 'The Matchbox · Spyll World',
+    health: 'healthy',
+    healthNote: 'All accounts syncing',
+    lastSync: 'Jul 27, 06:12',
+    recordsIngested: 1284,
+    webhookHeartbeat: '2 min ago',
+    paused: false,
+  },
+  {
+    id: 'hubspot',
+    name: 'HubSpot',
+    scope: 'The Matchbox · The Ad Spend portals',
+    health: 'degraded',
+    healthNote: 'Ad Spend portal rate-limited since 04:30',
+    lastSync: 'Jul 27, 04:28',
+    recordsIngested: 356,
+    webhookHeartbeat: '38 min ago',
+    paused: false,
+  },
+  {
+    id: 'asana',
+    name: 'Asana',
+    scope: 'Varia Global workspace',
+    health: 'healthy',
+    healthNote: 'Projects and time entries current',
+    lastSync: 'Jul 27, 06:05',
+    recordsIngested: 214,
+    webhookHeartbeat: '5 min ago',
+    paused: false,
+  },
+  {
+    id: 'pandadoc',
+    name: 'PandaDoc',
+    scope: 'Contracts · all entities',
+    health: 'healthy',
+    healthNote: 'Idle — no new documents this week',
+    lastSync: 'Jul 26, 22:00',
+    recordsIngested: 48,
+    webhookHeartbeat: '—',
+    paused: true,
   },
 ]
