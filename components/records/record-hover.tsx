@@ -2,7 +2,7 @@
 
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card'
 import { cn } from '@/lib/utils'
-import { summaries } from '@/lib/fixtures/records/summaries'
+import { getSummary } from '@/lib/records-api/summary-cache'
 
 interface RecordHoverProps {
   recordId: string
@@ -20,7 +20,7 @@ interface RecordHoverProps {
  * renders synchronously from fixtures.
  */
 export function RecordHover({ recordId, children, className, onClick }: RecordHoverProps) {
-  const summary = summaries[recordId]
+  const summary = getSummary(recordId)
 
   const trigger = (
     <button

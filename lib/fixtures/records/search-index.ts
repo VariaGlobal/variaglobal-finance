@@ -5,7 +5,7 @@
  * payment, and ruling.
  */
 
-import { bankTransactions } from '@/lib/fixtures/records/banking'
+import { fallbackBankTransactions as bankTransactions } from '@/lib/records-api/fallback-data'
 import { invoices, payments } from '@/lib/fixtures/records/billing'
 import { cycles } from '@/lib/fixtures/records/cycles'
 import { documents } from '@/lib/fixtures/records/documents'

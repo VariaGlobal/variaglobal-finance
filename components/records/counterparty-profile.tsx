@@ -33,17 +33,17 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
   return (
     <section aria-label={`${counterparty.name} record`}>
       {/* Header: name · role chips · aliases */}
-      <div className="border-b border-border px-5 pt-5 pb-4">
+      <div className="border-b border-border px-6 pt-5 pb-6">
         <button
           type="button"
           onClick={onBack}
-          className="mb-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground"
+          className="mb-4 hidden items-center gap-1.5 text-xs text-muted-foreground transition-colors duration-150 hover:text-foreground md:inline-flex"
         >
           <ArrowLeftIcon className="size-3.5" />
-          Counterparties
+          Clear selection
         </button>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <h1 className="text-lg font-medium tracking-tight text-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">
             {counterparty.name}
           </h1>
           <span className="flex flex-wrap items-center gap-1">
@@ -53,21 +53,24 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
           </span>
         </div>
         {counterparty.aliases && counterparty.aliases.length > 0 && (
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="mt-2 text-xs text-muted-foreground">
             also known as {counterparty.aliases.join(', ')}
           </p>
         )}
       </div>
 
       {/* Relationships — one card per money stream */}
-      <div className="border-b border-border px-5 pt-5 pb-6">
-        <h2 className="pb-3 text-sm font-medium text-foreground">Relationships</h2>
+      <div className="border-b border-border px-6 pt-6 pb-7">
+        <h2 className="pb-4 text-title font-medium text-foreground">Relationships</h2>
         {counterparty.relationships.length === 0 ? (
           <p className="text-meta">No relationships on file.</p>
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {counterparty.relationships.map((rel) => (
-              <div key={rel.id} className="rounded-md border border-border p-3.5">
+              <div
+                key={rel.id}
+                className="rounded-lg border border-border bg-muted/20 p-4 transition-colors duration-150 hover:bg-muted/40"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <RoleChip role={rel.role} />
                   <Badge
@@ -110,7 +113,7 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
       <div
         role="tablist"
         aria-label="Counterparty record sections"
-        className="flex items-center gap-5 border-b border-border px-5"
+        className="sticky top-0 z-10 flex items-center gap-5 border-b border-border bg-card/95 px-6 backdrop-blur-sm"
       >
         {(
           [
@@ -136,14 +139,15 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
       </div>
 
       {tab === 'overview' && (
-        <div>
-          <h2 className="px-5 pt-5 pb-3 text-sm font-medium text-foreground">Invoices</h2>
+        <div className="animate-detail-in">
+          <h2 className="text-title px-6 pt-6 pb-3 font-medium text-foreground">Invoices</h2>
           {cpInvoices.length === 0 ? (
-            <p className="text-meta px-5 pb-6">No invoices on record.</p>
+            <p className="text-meta px-6 pb-6">No invoices on record.</p>
           ) : (
             <>
               <TableHead
                 gridClassName={invoiceGrid}
+                padX="px-6"
                 columns={[
                   { label: 'Number' },
                   { label: 'Lines' },
@@ -156,7 +160,7 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
                   <div
                     role="listitem"
                     key={invoice.id}
-                    className={`grid min-h-11 items-center gap-3 border-b border-border px-5 py-2 transition-colors duration-150 hover:bg-foreground/[0.03] ${invoiceGrid}`}
+                    className={`grid min-h-12 items-center gap-3 border-b border-border px-6 py-2.5 transition-colors duration-150 hover:bg-foreground/[0.03] ${invoiceGrid}`}
                   >
                     <RecordHover recordId={invoice.id}>
                       <span className="font-mono text-xs tabular-nums text-foreground">
@@ -178,10 +182,10 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
 
           {months.length > 0 && (
             <>
-              <h2 className="px-5 pt-6 pb-3 text-sm font-medium text-foreground">
+              <h2 className="text-title px-6 pt-7 pb-3 font-medium text-foreground">
                 Recent hours
               </h2>
-              <div className="flex items-baseline gap-5 px-5 pb-8">
+              <div className="flex items-baseline gap-6 px-6 pb-8">
                 {months.map(([month, hours]) => (
                   <span key={month} className="flex items-baseline gap-1.5">
                     <span className="text-xs text-muted-foreground">{month}</span>
@@ -197,14 +201,14 @@ export function CounterpartyProfile({ counterparty, onBack }: CounterpartyProfil
       )}
 
       {tab === 'contracts' && (
-        <div className="pb-8">
+        <div className="animate-detail-in pb-8">
           {counterparty.contracts.length === 0 ? (
-            <p className="text-meta px-5 py-5">
+            <p className="text-meta px-6 py-6">
               No contracts on file — this relationship is governed by platform terms.
             </p>
           ) : (
             counterparty.contracts.map((contract) => (
-              <div key={contract.id} className="border-b border-border px-5 py-5">
+              <div key={contract.id} className="border-b border-border px-6 py-6">
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                   <h2 className="text-sm font-medium text-foreground">{contract.name}</h2>
                   <span className="text-meta">{contract.kind}</span>

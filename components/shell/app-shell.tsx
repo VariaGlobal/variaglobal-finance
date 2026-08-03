@@ -66,7 +66,7 @@ export function AppShell({
         activeSubTab={activeSubTab}
         onSubTabChange={onSubTabChange}
       />
-      <main className="min-h-0 flex-1 overflow-y-auto pb-16">{children}</main>
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</main>
 
       {/* Pinned bottom-left: Settings (Admin & Audit live inside it) */}
       <div className="fixed bottom-4 left-4 z-40">

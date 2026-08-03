@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { UploadIcon } from 'lucide-react'
 import { AppShell } from '@/components/shell/app-shell'
@@ -13,15 +13,16 @@ import { CycleDetail } from '@/components/records/cycle-detail'
 import { CyclesHub } from '@/components/records/cycles-hub'
 import { DocumentPreviewDrawer } from '@/components/records/document-preview-drawer'
 import { DocumentsHub } from '@/components/records/documents-hub'
+import { MasterDetail, DetailPlaceholder } from '@/components/records/master-detail'
 import { PeopleHub } from '@/components/records/people-hub'
 import { PersonProfile } from '@/components/records/person-profile'
+import { PageHeader } from '@/components/records/records-bits'
 import { UploadDrawer } from '@/components/records/upload-drawer'
-import { bankTransactions } from '@/lib/fixtures/records/banking'
+import { useCounterparties, useCycles } from '@/lib/records-api/resources'
+import { prefetchSummaries } from '@/lib/records-api/summary-cache'
 import { invoices, payments } from '@/lib/fixtures/records/billing'
-import { cyclesNewestFirst } from '@/lib/fixtures/records/cycles'
 import { documents } from '@/lib/fixtures/records/documents'
 import { recordPeople } from '@/lib/fixtures/records/people'
-import { counterparties } from '@/lib/fixtures/counterparties'
 import { entities, users } from '@/lib/fixtures/workspace'
 import type { AppUser, Entity, FilterChip } from '@/lib/types'
 
@@ -50,6 +51,21 @@ function RecordsPageInner() {
   const [openDocumentId, setOpenDocumentId] = useState<string | null>(null)
   const [uploadOpen, setUploadOpen] = useState(false)
 
+  // Live data (fixture fallback + source flag handled inside the hooks).
+  const { data: counterparties, source: cpSource } = useCounterparties()
+  const { data: cycles, source: cycleSource } = useCycles()
+
+  /* Prefetch hover summaries for visible rows so hovers stay instant. */
+  useEffect(() => {
+    if (activeTab === 'counterparties') {
+      prefetchSummaries(counterparties.map((cp) => ({ type: 'counterparty', id: cp.id })))
+    } else if (activeTab === 'cycles') {
+      prefetchSummaries(cycles.map((c) => ({ type: 'cycle', id: c.id })))
+    } else if (activeTab === 'people') {
+      prefetchSummaries(recordPeople.map((p) => ({ type: 'person', id: p.name })))
+    }
+  }, [activeTab, counterparties, cycles])
+
   /* Deep links from global search: /records?tab=cycles&open=2026-07-H1 */
   useEffect(() => {
     const tab = searchParams.get('tab')
@@ -60,19 +76,23 @@ function RecordsPageInner() {
     setOpenPersonId(tab === 'people' ? openId : null)
     setOpenCounterpartyId(tab === 'counterparties' ? openId : null)
     setOpenDocumentId(tab === 'documents' ? openId : null)
-    // Consume the params so in-app navigation stays clean.
     router.replace('/records', { scroll: false })
   }, [searchParams, router])
 
-  const openCycle = openCycleId
-    ? (cyclesNewestFirst.find((c) => c.id === openCycleId) ?? null)
-    : null
+  const openCycle = useMemo(
+    () => (openCycleId ? (cycles.find((c) => c.id === openCycleId) ?? null) : null),
+    [openCycleId, cycles],
+  )
   const openPerson = openPersonId
     ? (recordPeople.find((p) => p.id === openPersonId) ?? null)
     : null
-  const openCounterparty = openCounterpartyId
-    ? (counterparties.find((c) => c.id === openCounterpartyId) ?? null)
-    : null
+  const openCounterparty = useMemo(
+    () =>
+      openCounterpartyId
+        ? (counterparties.find((c) => c.id === openCounterpartyId) ?? null)
+        : null,
+    [openCounterpartyId, counterparties],
+  )
   const openDocument = openDocumentId
     ? (documents.find((d) => d.id === openDocumentId) ?? null)
     : null
@@ -105,6 +125,19 @@ function RecordsPageInner() {
     setOpenCounterpartyId(null)
   }
 
+  /* Persistent upload — every record enters through the same door. */
+  const uploadButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setUploadOpen(true)}
+      className="text-muted-foreground"
+    >
+      <UploadIcon data-icon="inline-start" />
+      Upload
+    </Button>
+  )
+
   return (
     <AppShell
       activeSection="records"
@@ -118,62 +151,126 @@ function RecordsPageInner() {
       activeSubTab={activeTab}
       onSubTabChange={handleTabChange}
     >
-      <div className="flex min-h-full flex-col pb-16">
-        {/* Persistent upload — every record enters through the same door. */}
-        <div className="flex items-center justify-end px-5 pt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setUploadOpen(true)}
-            className="text-muted-foreground"
-          >
-            <UploadIcon data-icon="inline-start" />
-            Upload
-          </Button>
-        </div>
-
-        {activeTab === 'people' &&
-          (openPerson ? (
-            <PersonProfile
-              person={openPerson}
-              onBack={() => setOpenPersonId(null)}
-              onOpenCycle={handleOpenCycle}
-            />
-          ) : (
-            <PeopleHub
-              people={recordPeople}
-              highlightedId={null}
-              onOpenPerson={handleOpenPerson}
-            />
-          ))}
-        {activeTab === 'counterparties' &&
-          (openCounterparty ? (
-            <CounterpartyProfile
-              counterparty={openCounterparty}
-              onBack={() => setOpenCounterpartyId(null)}
-            />
-          ) : (
-            <CounterpartiesHub
-              counterparties={counterparties}
-              onOpenCounterparty={setOpenCounterpartyId}
-            />
-          ))}
-        {activeTab === 'cycles' &&
-          (openCycle ? (
-            <CycleDetail
-              cycle={openCycle}
-              onBack={() => setOpenCycleId(null)}
-              onOpenPerson={handleOpenPerson}
-            />
-          ) : (
-            <CyclesHub cycles={cyclesNewestFirst} onOpenCycle={handleOpenCycle} />
-          ))}
-        {activeTab === 'banking' && <BankingHub transactions={bankTransactions} />}
-        {activeTab === 'billing' && (
-          <BillingHub invoices={invoices} payments={payments} counterparties={counterparties} />
+      {/* Keyed on the tab so each hub gently re-animates as you move between. */}
+      <div key={activeTab} className="animate-hub-in flex min-h-full flex-1 flex-col">
+        {activeTab === 'people' && (
+          <div key={openPersonId ?? 'list'} className="flex min-h-full flex-1 flex-col">
+            {openPerson ? (
+              <PersonProfile
+                person={openPerson}
+                onBack={() => setOpenPersonId(null)}
+                onOpenCycle={handleOpenCycle}
+              />
+            ) : (
+              <PeopleHub
+                people={recordPeople}
+                highlightedId={null}
+                onOpenPerson={handleOpenPerson}
+                action={uploadButton}
+              />
+            )}
+          </div>
         )}
+
+        {activeTab === 'counterparties' && (
+          <MasterDetail
+            hasSelection={Boolean(openCounterparty)}
+            onBack={() => setOpenCounterpartyId(null)}
+            backLabel="Counterparties"
+            selectionKey={openCounterpartyId}
+            header={
+              <PageHeader
+                title="Counterparties"
+                count={counterparties.length}
+                countNoun="counterparty"
+                countNounPlural="counterparties"
+                description="Clients, vendors, and partners you move money to or from."
+                source={cpSource}
+                action={uploadButton}
+              />
+            }
+            list={
+              <CounterpartiesHub
+                counterparties={counterparties}
+                selectedId={openCounterpartyId}
+                onOpenCounterparty={setOpenCounterpartyId}
+              />
+            }
+            detail={
+              openCounterparty ? (
+                <CounterpartyProfile
+                  counterparty={openCounterparty}
+                  onBack={() => setOpenCounterpartyId(null)}
+                />
+              ) : null
+            }
+            emptyDetail={
+              <DetailPlaceholder
+                title="Select a counterparty"
+                subline="Roles, relationships, contracts, and invoices open here."
+              />
+            }
+          />
+        )}
+
+        {activeTab === 'cycles' && (
+          <MasterDetail
+            hasSelection={Boolean(openCycle)}
+            onBack={() => setOpenCycleId(null)}
+            backLabel="Pay cycles"
+            selectionKey={openCycleId}
+            header={
+              <PageHeader
+                title="Pay cycles"
+                count={cycles.length}
+                countNoun="cycle"
+                description="Frozen pay sheets — every line traces to a timesheet, a rate card, and a ruling."
+                source={cycleSource}
+                action={uploadButton}
+              />
+            }
+            list={
+              <CyclesHub
+                cycles={cycles}
+                selectedId={openCycleId}
+                onOpenCycle={handleOpenCycle}
+              />
+            }
+            detail={
+              openCycle ? (
+                <CycleDetail
+                  cycle={openCycle}
+                  onBack={() => setOpenCycleId(null)}
+                  onOpenPerson={handleOpenPerson}
+                />
+              ) : null
+            }
+            emptyDetail={
+              <DetailPlaceholder
+                title="Select a pay cycle"
+                subline="The frozen sheet, per-person lines, and totals open here."
+              />
+            }
+          />
+        )}
+
+        {activeTab === 'banking' && <BankingHub entity={entity.id} action={uploadButton} />}
+
+        {activeTab === 'billing' && (
+          <BillingHub
+            invoices={invoices}
+            payments={payments}
+            counterparties={counterparties}
+            action={uploadButton}
+          />
+        )}
+
         {activeTab === 'documents' && (
-          <DocumentsHub documents={documents} onOpenDocument={setOpenDocumentId} />
+          <DocumentsHub
+            documents={documents}
+            onOpenDocument={setOpenDocumentId}
+            action={uploadButton}
+          />
         )}
       </div>
 

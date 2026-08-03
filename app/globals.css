@@ -195,3 +195,64 @@
 @utility animate-drawer-content {
   animation: drawer-content-in 160ms ease-out 40ms backwards;
 }
+
+/* Hub / panel entrance: content fades in and settles up 8px. Applied with a
+   React key on tab switch so each hub re-animates as you move between them. */
+@keyframes hub-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-hub-in {
+  animation: hub-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Detail pane entrance: a slightly longer settle from the right, used when a
+   record opens in the master-detail detail column. */
+@keyframes detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-detail-in {
+  animation: detail-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered list rows — pair with inline animation-delay for a gentle cascade
+   as a table first paints. Capped small so long lists never feel laggy. */
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-row-in {
+  animation: row-in 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hub-in,
+  .animate-detail-in,
+  .animate-row-in,
+  .animate-drawer-content,
+  .animate-approve-sweep {
+    animation: none !important;
+  }
+}

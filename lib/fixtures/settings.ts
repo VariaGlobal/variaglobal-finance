@@ -4,77 +4,8 @@
  */
 
 /* ── 01 Integrations ─────────────────────────────────────────────── */
-
-export type IntegrationHealth = 'healthy' | 'degraded' | 'down'
-
-export interface Integration {
-  id: string
-  name: string
-  scope: string // which entities/portals this connection covers
-  health: IntegrationHealth
-  healthNote: string
-  credentialAgeDays: number
-  rotateAfterDays: number
-  lastSync: string
-  recordsIngested: number
-  webhookHeartbeat: string // last heartbeat, or '—' if polling only
-  paused: boolean
-}
-
-export const integrations: Integration[] = [
-  {
-    id: 'mercury',
-    name: 'Mercury',
-    scope: 'The Matchbox · Spyll World',
-    health: 'healthy',
-    healthNote: 'All accounts syncing',
-    credentialAgeDays: 41,
-    rotateAfterDays: 90,
-    lastSync: 'Jul 27, 06:12',
-    recordsIngested: 1284,
-    webhookHeartbeat: '2 min ago',
-    paused: false,
-  },
-  {
-    id: 'hubspot',
-    name: 'HubSpot',
-    scope: 'The Matchbox · The Ad Spend portals',
-    health: 'degraded',
-    healthNote: 'Ad Spend portal rate-limited since 04:30',
-    credentialAgeDays: 87,
-    rotateAfterDays: 90,
-    lastSync: 'Jul 27, 04:28',
-    recordsIngested: 356,
-    webhookHeartbeat: '38 min ago',
-    paused: false,
-  },
-  {
-    id: 'asana',
-    name: 'Asana',
-    scope: 'Varia Global workspace',
-    health: 'healthy',
-    healthNote: 'Projects and time entries current',
-    credentialAgeDays: 12,
-    rotateAfterDays: 180,
-    lastSync: 'Jul 27, 06:05',
-    recordsIngested: 214,
-    webhookHeartbeat: '5 min ago',
-    paused: false,
-  },
-  {
-    id: 'pandadoc',
-    name: 'PandaDoc',
-    scope: 'Contracts · all entities',
-    health: 'healthy',
-    healthNote: 'Idle — no new documents this week',
-    credentialAgeDays: 63,
-    rotateAfterDays: 90,
-    lastSync: 'Jul 26, 22:00',
-    recordsIngested: 48,
-    webhookHeartbeat: '—',
-    paused: true,
-  },
-]
+/* Retired: sync-source cards now come from GET /api/records/sync-health
+   (useSyncHealth), with a labeled fallback in lib/records-api/fallback-data.ts. */
 
 /* ── 02 Rules ────────────────────────────────────────────────────── */
 
