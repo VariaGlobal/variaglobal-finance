@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { RecordHover } from '@/components/records/record-hover'
 import {
@@ -53,7 +54,17 @@ export function BankingHub({
   action?: React.ReactNode
 }) {
   const { data: transactions, source, loading } = useTransactions(entity)
+  const [hideInternal, setHideInternal] = useState(true)
+
+  // 194+ of the rows are moves between our own accounts; they bury real
+  // activity, so we hide them by default and surface a count instead.
+  const internalCount = transactions.filter((t) => t.category === 'internal_transfer').length
+  const visible = hideInternal
+    ? transactions.filter((t) => t.category !== 'internal_transfer')
+    : transactions
+
   const isEmpty = !loading && transactions.length === 0
+  const emptyAfterFilter = !loading && transactions.length > 0 && visible.length === 0
 
   return (
     <HubCanvas>
@@ -61,7 +72,7 @@ export function BankingHub({
         <PageHeader
           title="Banking"
           eyebrow={`Money · ${moneyHubSubtitles.banking}`}
-          count={transactions.length}
+          count={visible.length}
           countNoun="transaction"
           description="Mercury activity for this entity — matched to records or waiting to be."
           source={loading || isEmpty ? undefined : source}
@@ -73,6 +84,36 @@ export function BankingHub({
             subline="Upload a Mercury statement and every row lands here — matched or waiting to be. Try switching entity in the top bar."
           />
         ) : (
+        <>
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3 md:px-7">
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hideInternal}
+            onClick={() => setHideInternal((v) => !v)}
+            className="group inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+          >
+            <span
+              className={cn(
+                'relative h-4 w-7 rounded-full transition-colors duration-150',
+                hideInternal ? 'bg-foreground/70' : 'bg-border',
+              )}
+            >
+              <span
+                className={cn(
+                  'absolute top-0.5 size-3 rounded-full bg-background transition-all duration-150',
+                  hideInternal ? 'left-3.5' : 'left-0.5',
+                )}
+              />
+            </span>
+            Hide internal transfers
+          </button>
+          {hideInternal && internalCount > 0 && (
+            <span className="inline-flex h-6 items-center rounded-full border border-border px-2.5 font-mono text-[11px] tabular-nums text-muted-foreground">
+              +{internalCount} internal hidden
+            </span>
+          )}
+        </div>
         <HubBody>
           <TableHead
             gridClassName={grid}
@@ -87,9 +128,21 @@ export function BankingHub({
           />
           {loading ? (
             <TableSkeleton gridClassName={grid} cols={6} />
+          ) : emptyAfterFilter ? (
+            <p className="text-meta px-5 py-6 md:px-7">
+              Every row for this entity is an internal transfer.{' '}
+              <button
+                type="button"
+                onClick={() => setHideInternal(false)}
+                className="underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-foreground"
+              >
+                Show {internalCount} internal {internalCount === 1 ? 'transfer' : 'transfers'}
+              </button>
+              .
+            </p>
           ) : (
             <div role="list">
-              {transactions.map((txn: TransactionView) => (
+              {visible.map((txn: TransactionView) => (
                 <div role="listitem" key={txn.id} className={rowClass(grid, txn.matched)}>
                   <span className="font-mono text-xs tabular-nums text-muted-foreground">
                     {txn.postedAt}
