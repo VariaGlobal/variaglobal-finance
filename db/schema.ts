@@ -196,3 +196,37 @@ export const transactionCategorizations = pgTable('transaction_categorizations',
   taggedAt: timestamp('tagged_at').notNull().defaultNow(),
   supersededBy: integer('superseded_by'),
 })
+
+/** Invoice mirrors — HubSpot (Matchbox) and Stripe (Ad Spend) share these tables. */
+export const invoices = pgTable('invoices', {
+  hsId: text('hs_id').primaryKey(),
+  entity: text('entity').notNull().default('the-matchbox'),
+  source: text('source').notNull().default('hubspot'),
+  number: text('number'),
+  status: text('status'),
+  counterpartyId: text('counterparty_id'),
+  counterpartyRaw: text('counterparty_raw'),
+  amountBilledCents: integer('amount_billed_cents'),
+  balanceDueCents: integer('balance_due_cents'),
+  currency: text('currency'),
+  invoiceDate: text('invoice_date'),
+  dueDate: text('due_date'),
+  raw: jsonb('raw'),
+  syncedAt: timestamp('synced_at').notNull().defaultNow(),
+})
+
+export const invoicePayments = pgTable('invoice_payments', {
+  hsId: text('hs_id').primaryKey(),
+  entity: text('entity').notNull().default('the-matchbox'),
+  source: text('source').notNull().default('hubspot'),
+  customerRaw: text('customer_raw'),
+  counterpartyId: text('counterparty_id'),
+  grossCents: integer('gross_cents'),
+  feesCents: integer('fees_cents'),
+  netCents: integer('net_cents'),
+  payoutDate: text('payout_date'),
+  paymentDate: text('payment_date'),
+  status: text('status'),
+  raw: jsonb('raw'),
+  syncedAt: timestamp('synced_at').notNull().defaultNow(),
+})
