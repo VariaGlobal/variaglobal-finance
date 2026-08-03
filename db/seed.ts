@@ -20,11 +20,20 @@ const DDL: string[] = [
   `CREATE TABLE IF NOT EXISTS pay_cycles (id text PRIMARY KEY, entity text NOT NULL, period_start text NOT NULL, period_end text NOT NULL, scheduled_pay_date text NOT NULL, status text NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS pay_cycle_lines (id serial PRIMARY KEY, cycle_id text NOT NULL, person text NOT NULL, minutes integer NOT NULL, rate_cents integer, amount_cents integer, payable boolean NOT NULL, excluded_reason text, deferred_from text, origin_start text NOT NULL, origin_end text NOT NULL, source text NOT NULL, trace text NOT NULL)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS pay_cycle_lines_natural_uq ON pay_cycle_lines (cycle_id, person, origin_start, deferred_from)`,
-  `CREATE TABLE IF NOT EXISTS rulings (id text PRIMARY KEY, kind text NOT NULL, label text NOT NULL, evidence text, status text NOT NULL, options jsonb, decided_by text, decided_at timestamp)`,
+  `CREATE TABLE IF NOT EXISTS rulings (id text PRIMARY KEY, kind text NOT NULL, label text NOT NULL, evidence text, status text NOT NULL, options jsonb, decision text, decided_by text, decided_at timestamp)`,
+  `ALTER TABLE rulings ADD COLUMN IF NOT EXISTS decision text`,
   `CREATE TABLE IF NOT EXISTS audit_events (id serial PRIMARY KEY, at timestamp DEFAULT now() NOT NULL, actor text NOT NULL, action text NOT NULL, object_type text NOT NULL, object_id text NOT NULL, detail text)`,
   `CREATE TABLE IF NOT EXISTS counterparties (id text PRIMARY KEY, name text NOT NULL, kind text NOT NULL, notes text)`,
   `CREATE TABLE IF NOT EXISTS counterparty_aliases (alias text PRIMARY KEY, counterparty_id text NOT NULL)`,
   `CREATE TABLE IF NOT EXISTS relationships (id text PRIMARY KEY, counterparty_id text NOT NULL, entity text NOT NULL, role text NOT NULL, stream_type text, effective_from text, effective_to text, status text NOT NULL)`,
+  `CREATE TABLE IF NOT EXISTS relationship_roles (id text PRIMARY KEY, label text NOT NULL, money_direction text NOT NULL, counts_as_revenue boolean NOT NULL DEFAULT false, is_payable boolean NOT NULL DEFAULT false, requires_contract boolean NOT NULL DEFAULT false, description text, active boolean NOT NULL DEFAULT true)`,
+  `CREATE TABLE IF NOT EXISTS stream_types (id text PRIMARY KEY, label text NOT NULL, active boolean NOT NULL DEFAULT true)`,
+  `CREATE TABLE IF NOT EXISTS expense_categories (id text PRIMARY KEY, label text NOT NULL, active boolean NOT NULL DEFAULT true)`,
+  `CREATE TABLE IF NOT EXISTS time_entries (asana_gid text PRIMARY KEY, person text NOT NULL, entered_on text NOT NULL, minutes integer NOT NULL, task_gid text, task_name text, project_gid text, project_name text, billable_status text, approval_status text, created_at text, source text NOT NULL DEFAULT 'asana', synced_at timestamp NOT NULL DEFAULT now())`,
+  `CREATE TABLE IF NOT EXISTS bank_transactions (mercury_id text PRIMARY KEY, entity text NOT NULL, account_id text, amount_cents integer NOT NULL, counterparty_name text, bank_description text, external_memo text, kind text, status text NOT NULL, created_at text, posted_at text, gl_code text, source text NOT NULL DEFAULT 'mercury', synced_at timestamp NOT NULL DEFAULT now())`,
+  `CREATE TABLE IF NOT EXISTS sync_runs (id serial PRIMARY KEY, source text NOT NULL, window_start text, window_end text, started_at timestamp NOT NULL DEFAULT now(), finished_at timestamp, status text NOT NULL, inserted integer DEFAULT 0, updated integer DEFAULT 0, upstream_changes integer DEFAULT 0, error_detail text, notes text)`,
+  `CREATE TABLE IF NOT EXISTS transaction_categorizations (id serial PRIMARY KEY, mercury_id text NOT NULL, counterparty_id text, category text NOT NULL, note text, tagged_by text NOT NULL, tagged_at timestamp NOT NULL DEFAULT now(), superseded_by integer)`,
+  `CREATE INDEX IF NOT EXISTS txn_cat_mercury_idx ON transaction_categorizations (mercury_id)`,
 ]
 
 const slugify = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -159,11 +168,35 @@ export async function bootstrapDatabase(db: Db, mode: 'seed' | 'verify' = 'seed'
 
     const rulingRows = [
       { id: 'RUL-001', kind: 'defer', label: 'Arsalan June 16-30 $5,150 deferred to Jul 31 (not paid Jul 15)', evidence: 'Mercury txn 9f1d882e-8217-11f1-a4d1-a34b61ec221a: only $600 to Syed Arsalan Raza in Jul 10-27 window', status: 'decided', options: null, decidedBy: 'Ani Bisaria' },
-      { id: 'RUL-002', kind: 'open_ruling', label: 'Apply "subtract 3 hours paid directly to IM"?', evidence: 'Sheet notes June F4 / July F13 - never applied by any formula', status: 'open', options: [{ label: 'Pay full $5,150.00', amountCents: 515000 }, { label: 'Apply -3h via IM $4,850.00', amountCents: 485000 }], decidedBy: null },
+      { id: 'RUL-002', kind: 'open_ruling', label: 'Apply "subtract 3 hours paid directly to IM"?', evidence: 'Sheet notes June F4 / July F13 - never applied by any formula', status: 'decided', options: [{ label: 'Pay full $5,150.00', amountCents: 515000 }, { label: 'Apply -3h via IM $4,850.00', amountCents: 485000 }], decision: 'Apply -3h via IM: $4,850.00 direct in 2026-07-H1; $300.00 settles via the latest Interrupt Media invoice. One-off - Arsalan no longer logs time with IM.', decidedBy: 'Sydney Allen (Slack, relayed by Ani Bisaria)' },
       { id: 'RUL-003', kind: 'backfill', label: 'Zach Crew $15/h - cycle tab only, absent from Rate Card', evidence: 'June tab row 14', status: 'decided', options: null, decidedBy: 'Ani Bisaria' },
       { id: 'RUL-004', kind: 'backfill', label: 'Abdullah/Kayla/Miles June rates backfilled from 2026-07 card', evidence: 'Rate Card 2026-06 gaps', status: 'decided', options: null, decidedBy: 'Ani Bisaria' },
     ]
     for (const r of rulingRows) await db.insert(s.rulings).values(r).onConflictDoNothing()
+
+    const ROLE_ROWS: (typeof s.relationshipRoles.$inferInsert)[] = [
+      { id: 'client', label: 'Client', moneyDirection: 'in', countsAsRevenue: true, requiresContract: true, description: 'Pays one of our entities for services under contract' },
+      { id: 'customer', label: 'Customer', moneyDirection: 'in', countsAsRevenue: true, requiresContract: true, description: 'Pays for a product/SaaS (e.g. The Ad Spend platform)' },
+      { id: 'vendor', label: 'Vendor', moneyDirection: 'out', isPayable: true, description: 'We pay them for goods/services' },
+      { id: 'partner', label: 'Partner', moneyDirection: 'both', description: 'Co-delivery / strategic; money can flow either way' },
+      { id: 'royalty_source', label: 'Royalty source', moneyDirection: 'in', countsAsRevenue: true, description: 'Pays royalties/distributions (SoundExchange, BMI...)' },
+      { id: 'commission_source', label: 'Commission source', moneyDirection: 'in', countsAsRevenue: true, description: 'Pays commissions on deals (HubSpot partner program)' },
+      { id: 'tax_agency', label: 'Tax agency', moneyDirection: 'out', isPayable: true, description: 'IRS, state agencies' },
+      { id: 'owner', label: 'Owner', moneyDirection: 'out', description: 'Owner/shareholder - draws, contributions, reimbursements. Operational label only; tax classification belongs to the accountants.' },
+      { id: 'artist', label: 'Artist', moneyDirection: 'out', isPayable: true, requiresContract: true, description: 'We pay them royalties/advances as a performing or recording artist' },
+    ]
+    for (const r of ROLE_ROWS) await db.insert(s.relationshipRoles).values(r).onConflictDoNothing()
+    for (const st of [['retainer','Retainer'],['saas','SaaS subscription'],['services','Services'],['commission','Commission'],['royalty','Royalty'],['pass_through','Pass-through'],['one_time','One-time project']]) {
+      await db.insert(s.streamTypes).values({ id: st[0], label: st[1] }).onConflictDoNothing()
+    }
+    for (const c of ['software_subscription','contractor_cost','vendor_pass_through','ad_spend','travel','meals','banking_fees','intercompany','client_reimbursable','legal_professional','other']) {
+      await db.insert(s.expenseCategories).values({ id: c, label: c.replace(/_/g, ' ').replace(/^./, (ch) => ch.toUpperCase()) }).onConflictDoNothing()
+    }
+    await db.insert(s.expenseCategories).values({ id: 'owner_draw', label: 'Owner draw / distribution (operational label, not tax advice)' }).onConflictDoNothing()
+    await db.insert(s.expenseCategories).values({ id: 'artist_royalty_payout', label: 'Artist royalty payout' }).onConflictDoNothing()
+    await db.insert(s.counterparties).values({ id: 'ani-bisaria', name: 'Aniruddh Bisaria', kind: 'person', notes: 'Founder/owner across all entities. Transfers to personal Fidelity cash account (auto-invested).' }).onConflictDoNothing()
+    await db.insert(s.relationships).values({ id: 'ani-bisaria:owner:the-matchbox', counterpartyId: 'ani-bisaria', entity: 'the-matchbox', role: 'owner', streamType: null, effectiveFrom: null, effectiveTo: null, status: 'active' }).onConflictDoNothing()
+    await db.insert(s.relationships).values({ id: 'ani-bisaria:artist:spyll-world', counterpartyId: 'ani-bisaria', entity: 'spyll-world', role: 'artist', streamType: 'royalty', effectiveFrom: null, effectiveTo: null, status: 'active' }).onConflictDoNothing()
 
     await db.insert(s.counterparties).values(COUNTERPARTIES).onConflictDoNothing()
     await db.insert(s.counterpartyAliases).values(ALIASES).onConflictDoNothing()
@@ -201,6 +234,11 @@ export async function bootstrapDatabase(db: Db, mode: 'seed' | 'verify' = 'seed'
   counts.relationships = (await db.select().from(s.relationships)).length
   counts.counterparty_aliases = (await db.select().from(s.counterpartyAliases)).length
   counts.audit_events = (await db.select().from(s.auditEvents)).length
+  counts.relationship_roles = (await db.select().from(s.relationshipRoles)).length
+  counts.time_entries = (await db.select().from(s.timeEntries)).length
+  counts.bank_transactions = (await db.select().from(s.bankTransactions)).length
+  counts.sync_runs = (await db.select().from(s.syncRuns)).length
+  counts.transaction_categorizations = (await db.select().from(s.transactionCategorizations)).length
 
   const juneLines = await db.select().from(s.payCycleLines).where(eq(s.payCycleLines.cycleId, '2026-06-H2'))
   const juneDbPayableCents = juneLines.filter((l) => l.payable).reduce((a, l) => a + (l.amountCents ?? 0), 0)
