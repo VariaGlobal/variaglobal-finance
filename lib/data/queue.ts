@@ -15,64 +15,29 @@ function money(cents: number): Money {
 
 export function buildRealWorkItems(): WorkItem[] {
   const [june, july] = runPayroll(realCycleSpecs, engineContext)
-  const deferred = june.lines.find((l) => l.deferredOut)
-  const pendingFull = july.pendingRulingTotals.find((t) => t.label.includes('full'))
-  const pendingMinus = july.pendingRulingTotals.find((t) => t.label.includes('−3h'))
 
   const items: WorkItem[] = [
     {
       id: 'wi-rul-002',
       type: 'pay_cycle',
-      status: 'needs_decision',
-      title: 'Resolve split routing — Arsalan, June 16–30',
-      meta: ['The Matchbox', 'decide before the Jul 31 run', 'RUL-002'],
-      trace: `51.5h × $100.00/h = ${formatCents(515000)} · with −3h via IM = ${formatCents(485000)}`,
-      amount: money(deferred?.amountCents ?? 515000),
-      actions: [
-        {
-          id: 'rul2-full',
-          label: 'Pay full $5,150.00',
-          intent: 'primary',
-          money: true,
-          resolves: true,
-          confirm: {
-            title: 'Record ruling RUL-002 — pay in full',
-            records: [
-              'Arsalan, deferred June 16–30 work: 51.5h × $100.00/h = $5,150.00 pays in the Jul 31 cycle',
-              'Nothing moves to Interrupt Media settlement for this line',
-              'Ruling recorded with actor and timestamp — reversible only by correction',
-            ],
-          },
-        },
-        {
-          id: 'rul2-minus3h',
-          label: 'Apply −3h via IM',
-          intent: 'secondary',
-          money: true,
-          resolves: true,
-          confirm: {
-            title: 'Record ruling RUL-002 — apply −3h via Interrupt Media',
-            records: [
-              'Arsalan, deferred June 16–30 work: 48.5h × $100.00/h = $4,850.00 pays in the Jul 31 cycle',
-              '3.0h × $100.00/h = $300.00 accrues to Interrupt Media settlement instead',
-              'Ruling recorded with actor and timestamp — reversible only by correction',
-            ],
-          },
-        },
-      ],
+      status: 'review',
+      title: 'RUL-002 decided — Arsalan pays $4,850.00 direct',
+      meta: ['The Matchbox', 'decided by Sydney Allen · Jul 30', '$300.00 settles via Interrupt Media invoice'],
+      trace: `48.5h × $100.00/h = ${formatCents(485000)} · one-off — Arsalan no longer logs time with IM`,
+      amount: money(july.lines.find((l) => l.deferredIn)?.amountCents ?? 485000),
+      actions: [{ id: 'rul2-view', label: 'View record', intent: 'secondary', money: false, resolves: false }],
       evidence: [
-        { label: 'Bank evidence', value: 'Mercury (The Matchbox): only $600.00 to Syed Arsalan Raza in Jul 10–27', mono: false },
+        { label: 'Decision', value: 'Sydney Allen (Slack, relayed by Ani): "It is applied in the latest IM invoice… should be a one off since Arsalan no longer logs time with IM."', mono: false },
+        { label: 'Bank evidence', value: 'Mercury: only $600.00 to Syed Arsalan Raza in Jul 10–27 (June 1–15 catch-up)', mono: false },
         { label: 'Mercury txn', value: '9f1d882e-8217-11f1-a4d1-a34b61ec221a', mono: true },
-        { label: 'Sheet note', value: '"Subtract 3 hours paid directly to IM" — June F4 / July F13, never applied by any formula', mono: false },
-        { label: 'Option A', value: '51.5h × $100.00 = $5,150.00 → Jul 31 total $20,103.08', mono: true },
-        { label: 'Option B', value: '48.5h × $100.00 = $4,850.00 → Jul 31 total $19,803.08', mono: true },
+        { label: 'Follow-up', value: 'Verify the $300.00 appears when the latest IM invoice is paid through Mercury', mono: false },
       ],
       history: [
-        { at: 'Jul 27, 13:26', actor: 'Mercury', event: 'Evidence pulled: single $600.00 payment, memo "June 1 through 15 2026 payroll"' },
-        { at: 'Jul 27', actor: 'Ani Bisaria', event: 'RUL-001 recorded: $5,150.00 deferred from the Jul 15 run to Jul 31' },
-        { at: 'Jul 27', actor: 'System', event: 'Deferred-in line gated on this ruling (RUL-002)' },
+        { at: 'Jul 27', actor: 'System', event: 'Sheet note found unapplied; modeled as open ruling with both totals' },
+        { at: 'Jul 30, 11:05', actor: 'Sydney Allen', event: 'Decided via Slack: apply −3h via IM (one-off)' },
+        { at: 'Jul 30', actor: 'System', event: 'Deferred line corrected to 48.5h / $4,850.00 payable' },
       ],
-      tags: { entity: 'the-matchbox', people: ['arsalan'], period: '2026-07', status: 'needs_decision' },
+      tags: { entity: 'the-matchbox', people: ['arsalan'], period: '2026-07', status: 'review' },
       createdAt: 'Jul 27',
     },
     {
@@ -80,8 +45,8 @@ export function buildRealWorkItems(): WorkItem[] {
       type: 'pay_cycle',
       status: 'prepared',
       title: 'Pay cycle Jul 1–15 — ready for review',
-      meta: ['The Matchbox', 'pays Jul 31', '9 direct · 1 routed → IM', '1 deferred-in pending RUL-002'],
-      trace: `${formatCents(july.payableCents)} payable · Jul 31 total ${pendingFull ? formatCents(pendingFull.totalCents) : ''} full / ${pendingMinus ? formatCents(pendingMinus.totalCents) : ''} with −3h`,
+      meta: ['The Matchbox', 'pays Jul 31', '10 payable lines · 1 routed → IM', 'incl. deferred June work (RUL-002 decided)'],
+      trace: `${formatCents(july.payableCents)} payable · all rulings decided · ready for the Jul 31 run`,
       amount: money(july.payableCents),
       actions: [
         { id: 'cycle-review', label: 'Review lines', intent: 'secondary', money: false, resolves: false },
@@ -92,9 +57,9 @@ export function buildRealWorkItems(): WorkItem[] {
           money: true,
           resolves: false,
           confirm: {
-            title: 'Approve pay cycle Jul 1–15 (requires RUL-002 decided)',
+            title: 'Approve pay cycle Jul 1–15',
             records: [
-              `Freezes 9 payable lines totaling ${formatCents(july.payableCents)}, plus the RUL-002 outcome`,
+              `Freezes 10 payable lines totaling ${formatCents(july.payableCents)} (incl. RUL-002 outcome: $4,850.00)`,
               'Every line pins its Rate Card 2026-07 version — post-approval changes only by correction',
               'Tess Fazio 11.75h excluded from payroll — accrues $1,468.75 to Interrupt Media settlement',
             ],

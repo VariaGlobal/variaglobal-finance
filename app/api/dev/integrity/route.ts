@@ -41,6 +41,13 @@ export async function GET(req: Request) {
     'counterparties',
     'counterparty_aliases',
     'relationships',
+    'relationship_roles',
+    'stream_types',
+    'expense_categories',
+    'time_entries',
+    'bank_transactions',
+    'sync_runs',
+    'transaction_categorizations',
   ]
   const counts: Record<string, number> = {}
   for (const t of tables) {
@@ -94,7 +101,7 @@ export async function GET(req: Request) {
     const junePayable = lines.filter((l) => l.cycleId === '2026-06-H2' && l.payable).reduce((a, l) => a + (l.amountCents ?? 0), 0)
     const julyPayable = lines.filter((l) => l.cycleId === '2026-07-H1' && l.payable).reduce((a, l) => a + (l.amountCents ?? 0), 0)
     add('JUNE-SUM', junePayable === 1134492, `June payable ${junePayable} cents (expect 1134492 = $11,344.92)`)
-    add('JULY-SUM', julyPayable === 1495308, `July payable ${julyPayable} cents (expect 1495308 = $14,953.08)`)
+    add('JULY-SUM', julyPayable === 1980308, `July payable ${julyPayable} cents (expect 1980308 = $19,803.08 — includes decided RUL-002 at $4,850.00)`)
 
     const deferredIn = lines.filter((l) => l.deferredFrom !== null)
     add('DEFERRAL-ONCE', deferredIn.length === 1 && deferredIn[0].cycleId === '2026-07-H1', `${deferredIn.length} deferred-in lines (expect exactly 1, in 2026-07-H1)`)
