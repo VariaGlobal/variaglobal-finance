@@ -16,7 +16,7 @@ import { DocumentsHub } from '@/components/records/documents-hub'
 import { MasterDetail, DetailPlaceholder } from '@/components/records/master-detail'
 import { PeopleHub } from '@/components/records/people-hub'
 import { PersonProfile } from '@/components/records/person-profile'
-import { SampleDataChip } from '@/components/records/records-bits'
+import { PageHeader } from '@/components/records/records-bits'
 import { UploadDrawer } from '@/components/records/upload-drawer'
 import { useCounterparties, useCycles } from '@/lib/records-api/resources'
 import { prefetchSummaries } from '@/lib/records-api/summary-cache'
@@ -125,6 +125,19 @@ function RecordsPageInner() {
     setOpenCounterpartyId(null)
   }
 
+  /* Persistent upload — every record enters through the same door. */
+  const uploadButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setUploadOpen(true)}
+      className="text-muted-foreground"
+    >
+      <UploadIcon data-icon="inline-start" />
+      Upload
+    </Button>
+  )
+
   return (
     <AppShell
       activeSection="records"
@@ -138,46 +151,49 @@ function RecordsPageInner() {
       activeSubTab={activeTab}
       onSubTabChange={handleTabChange}
     >
-      <div className="flex min-h-full flex-col pb-16">
-        {/* Persistent upload — every record enters through the same door. */}
-        <div className="flex items-center justify-end px-5 pt-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setUploadOpen(true)}
-            className="text-muted-foreground"
-          >
-            <UploadIcon data-icon="inline-start" />
-            Upload
-          </Button>
-        </div>
-
-        {activeTab === 'people' &&
-          (openPerson ? (
-            <PersonProfile
-              person={openPerson}
-              onBack={() => setOpenPersonId(null)}
-              onOpenCycle={handleOpenCycle}
-            />
-          ) : (
-            <PeopleHub
-              people={recordPeople}
-              highlightedId={null}
-              onOpenPerson={handleOpenPerson}
-            />
-          ))}
+      {/* Keyed on the tab so each hub gently re-animates as you move between. */}
+      <div key={activeTab} className="animate-hub-in flex min-h-full flex-1 flex-col">
+        {activeTab === 'people' && (
+          <div key={openPersonId ?? 'list'} className="flex min-h-full flex-1 flex-col">
+            {openPerson ? (
+              <PersonProfile
+                person={openPerson}
+                onBack={() => setOpenPersonId(null)}
+                onOpenCycle={handleOpenCycle}
+              />
+            ) : (
+              <PeopleHub
+                people={recordPeople}
+                highlightedId={null}
+                onOpenPerson={handleOpenPerson}
+                action={uploadButton}
+              />
+            )}
+          </div>
+        )}
 
         {activeTab === 'counterparties' && (
           <MasterDetail
             hasSelection={Boolean(openCounterparty)}
             onBack={() => setOpenCounterpartyId(null)}
             backLabel="Counterparties"
+            selectionKey={openCounterpartyId}
+            header={
+              <PageHeader
+                title="Counterparties"
+                count={counterparties.length}
+                countNoun="counterparty"
+                countNounPlural="counterparties"
+                description="Clients, vendors, and partners you move money to or from."
+                source={cpSource}
+                action={uploadButton}
+              />
+            }
             list={
               <CounterpartiesHub
                 counterparties={counterparties}
                 selectedId={openCounterpartyId}
                 onOpenCounterparty={setOpenCounterpartyId}
-                source={cpSource}
               />
             }
             detail={
@@ -202,12 +218,22 @@ function RecordsPageInner() {
             hasSelection={Boolean(openCycle)}
             onBack={() => setOpenCycleId(null)}
             backLabel="Pay cycles"
+            selectionKey={openCycleId}
+            header={
+              <PageHeader
+                title="Pay cycles"
+                count={cycles.length}
+                countNoun="cycle"
+                description="Frozen pay sheets — every line traces to a timesheet, a rate card, and a ruling."
+                source={cycleSource}
+                action={uploadButton}
+              />
+            }
             list={
               <CyclesHub
                 cycles={cycles}
                 selectedId={openCycleId}
                 onOpenCycle={handleOpenCycle}
-                source={cycleSource}
               />
             }
             detail={
@@ -228,22 +254,23 @@ function RecordsPageInner() {
           />
         )}
 
-        {activeTab === 'banking' && <BankingHub entity={entity.id} />}
+        {activeTab === 'banking' && <BankingHub entity={entity.id} action={uploadButton} />}
 
         {activeTab === 'billing' && (
-          <div>
-            <div className="flex items-center gap-2 px-5 pt-6 pb-2">
-              <SampleDataChip source="fallback" />
-              <span className="text-meta">
-                Billing runs on sample data until invoices land in the database.
-              </span>
-            </div>
-            <BillingHub invoices={invoices} payments={payments} counterparties={counterparties} />
-          </div>
+          <BillingHub
+            invoices={invoices}
+            payments={payments}
+            counterparties={counterparties}
+            action={uploadButton}
+          />
         )}
 
         {activeTab === 'documents' && (
-          <DocumentsHub documents={documents} onOpenDocument={setOpenDocumentId} />
+          <DocumentsHub
+            documents={documents}
+            onOpenDocument={setOpenDocumentId}
+            action={uploadButton}
+          />
         )}
       </div>
 

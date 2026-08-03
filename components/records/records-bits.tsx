@@ -1,6 +1,7 @@
 /**
- * Shared Records primitives — editorial empty state, hairline table
- * scaffolding, and lifecycle chips. Dumb components: props in, nothing out.
+ * Shared Records primitives — the framed content canvas, page + hub headers,
+ * hairline table scaffolding, editorial empty state, and lifecycle chips.
+ * Dumb components: props in, nothing out.
  */
 
 import { cn } from '@/lib/utils'
@@ -8,10 +9,56 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { DataSource } from '@/lib/records-api/types'
 
+/** Horizontal padding used consistently across every hub's interior. */
+export const hubPadX = 'px-5 md:px-7'
+
 /**
- * "Sample data" chip — shown in a hub header whenever it is rendering
- * bundled fixtures instead of live API data. Mock data must never be
- * mistaken for real records, so this is deliberately conspicuous.
+ * The framed canvas every Records hub sits in — a warm card surface floating
+ * on the page with a rounded hairline border and comfortable margin. This is
+ * what gives the section its breathing room. No shadow (reserved for
+ * overlays); elevation reads purely from the lighter card fill.
+ */
+export function HubCanvas({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className="flex h-full min-h-0 flex-1 flex-col p-3 md:p-5">
+      <div
+        className={cn(
+          'flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card',
+          className,
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Scrolling body region for a hub — sits below a fixed PageHeader inside a
+ * HubCanvas so the header stays put while line items scroll.
+ */
+export function HubBody({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn('min-h-0 flex-1 overflow-y-auto pt-4 pb-8', className)}>{children}</div>
+  )
+}
+
+/**
+ * "Sample data" chip — shown in a header whenever a hub is rendering bundled
+ * fixtures instead of live API data. Mock data must never be mistaken for real
+ * records, so this is deliberately conspicuous.
  */
 export function SampleDataChip({ source }: { source: DataSource }) {
   if (source === 'live') return null
@@ -24,6 +71,73 @@ export function SampleDataChip({ source }: { source: DataSource }) {
       <span aria-hidden className="size-1.5 rounded-full bg-decision" />
       sample data
     </Badge>
+  )
+}
+
+/** Small mono count pill used in page + hub headers. */
+export function CountPill({
+  count,
+  noun,
+  nounPlural,
+}: {
+  count: number
+  noun: string
+  nounPlural?: string
+}) {
+  return (
+    <span className="inline-flex h-6 shrink-0 items-center rounded-full border border-border px-2.5 font-mono text-[11px] tabular-nums text-muted-foreground">
+      {count} {count === 1 ? noun : (nounPlural ?? `${noun}s`)}
+    </span>
+  )
+}
+
+/**
+ * Prominent page header for a full-width hub — large title, count pill, an
+ * orienting one-liner, and a right-aligned action slot (e.g. Upload). Sits on
+ * the card's top edge above the hairline that separates it from the table.
+ */
+export function PageHeader({
+  title,
+  count,
+  countNoun,
+  countNounPlural,
+  description,
+  source,
+  action,
+}: {
+  title: string
+  count?: number
+  countNoun?: string
+  countNounPlural?: string
+  description?: string
+  source?: DataSource
+  action?: React.ReactNode
+}) {
+  return (
+    <div
+      className={cn(
+        'flex shrink-0 flex-col gap-4 border-b border-border pt-6 pb-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6',
+        hubPadX,
+      )}
+    >
+      <div className="flex min-w-0 flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <h1 className="text-xl font-medium tracking-tight text-balance text-foreground md:text-2xl">
+            {title}
+          </h1>
+          {typeof count === 'number' && countNoun && (
+            <CountPill count={count} noun={countNoun} nounPlural={countNounPlural} />
+          )}
+          {source && <SampleDataChip source={source} />}
+        </div>
+        {description && (
+          <p className="max-w-xl text-sm leading-relaxed text-pretty text-muted-foreground">
+            {description}
+          </p>
+        )}
+      </div>
+      {action && <div className="flex shrink-0 items-center gap-2">{action}</div>}
+    </div>
   )
 }
 
@@ -43,7 +157,8 @@ export function TableSkeleton({
         <div
           key={r}
           className={cn(
-            'grid min-h-12 items-center gap-3 border-b border-border px-5 py-2.5',
+            'grid min-h-[52px] items-center gap-3 border-b border-border/60 py-3',
+            hubPadX,
             gridClassName,
           )}
         >
@@ -73,7 +188,7 @@ export function RecordsEmpty({ title, subline }: { title: string; subline: strin
   )
 }
 
-/** Hub header: title · mono count · optional trailing content. */
+/** Compact hub header: title · mono count · optional trailing content. */
 export function HubHeader({
   title,
   count,
@@ -92,12 +207,10 @@ export function HubHeader({
   children?: React.ReactNode
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 px-5 pt-6 pb-4">
-      <div className="flex items-baseline gap-3">
-        <h1 className="text-lg font-medium tracking-tight text-foreground">{title}</h1>
-        <span className="font-mono text-xs tabular-nums text-muted-foreground">
-          {count} {count === 1 ? countNoun : (countNounPlural ?? `${countNoun}s`)}
-        </span>
+    <div className={cn('flex items-center justify-between gap-3 pt-6 pb-4', hubPadX)}>
+      <div className="flex items-center gap-3">
+        <h2 className="text-base font-medium tracking-tight text-foreground">{title}</h2>
+        <CountPill count={count} noun={countNoun} nounPlural={countNounPlural} />
         {source && <SampleDataChip source={source} />}
       </div>
       {children}
@@ -116,7 +229,8 @@ export function TableHead({
   return (
     <div
       className={cn(
-        'grid items-baseline gap-3 border-b border-border px-5 pb-2 text-[11px] tracking-wide text-muted-foreground/70 uppercase',
+        'grid items-baseline gap-3 border-b border-border pt-1 pb-2.5 text-[10.5px] font-medium tracking-[0.06em] text-muted-foreground/70 uppercase',
+        hubPadX,
         gridClassName,
       )}
     >
@@ -126,6 +240,19 @@ export function TableHead({
         </span>
       ))}
     </div>
+  )
+}
+
+/**
+ * Consistent line-item row styling for hairline tables. `interactive` adds a
+ * pointer + slightly stronger hover; pass a grid template via `gridClassName`.
+ */
+export function rowClass(gridClassName: string, interactive = false) {
+  return cn(
+    'group grid min-h-[52px] items-center gap-3 border-b border-border/60 py-3 transition-colors duration-150 last:border-b-0',
+    hubPadX,
+    interactive ? 'hover:bg-foreground/[0.045]' : 'hover:bg-foreground/[0.025]',
+    gridClassName,
   )
 }
 

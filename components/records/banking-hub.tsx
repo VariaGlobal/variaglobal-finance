@@ -3,11 +3,14 @@
 import { Badge } from '@/components/ui/badge'
 import { RecordHover } from '@/components/records/record-hover'
 import {
-  HubHeader,
+  HubBody,
+  HubCanvas,
   MatchedChip,
+  PageHeader,
   RecordsEmpty,
   TableHead,
   TableSkeleton,
+  rowClass,
 } from '@/components/records/records-bits'
 import { cn } from '@/lib/utils'
 import { useTransactions, type TransactionView } from '@/lib/records-api/resources'
@@ -41,74 +44,86 @@ function CategoryChip({ category }: { category?: string }) {
  * display-ready (sign included) and category drives the chip. Falls back to
  * bundled sample rows when the endpoint is unavailable, badged accordingly.
  */
-export function BankingHub({ entity }: { entity?: string }) {
+export function BankingHub({
+  entity,
+  action,
+}: {
+  entity?: string
+  action?: React.ReactNode
+}) {
   const { data: transactions, source, loading } = useTransactions(entity)
 
   if (!loading && transactions.length === 0) {
     return (
-      <RecordsEmpty
-        title="No bank activity on record for this entity."
-        subline="Upload a Mercury statement and every row lands here — matched or waiting to be."
-      />
+      <HubCanvas>
+        <RecordsEmpty
+          title="No bank activity on record for this entity."
+          subline="Upload a Mercury statement and every row lands here — matched or waiting to be."
+        />
+      </HubCanvas>
     )
   }
 
   return (
-    <section aria-label="Banking">
-      <HubHeader
-        title="Banking"
-        count={transactions.length}
-        countNoun="transaction"
-        source={source}
-      />
-      <TableHead
-        gridClassName={grid}
-        columns={[
-          { label: 'Posted' },
-          { label: 'Counterparty' },
-          { label: 'Amount', align: 'right' },
-          { label: 'Account' },
-          { label: 'Category' },
-          { label: 'Matched' },
-        ]}
-      />
-      {loading ? (
-        <TableSkeleton gridClassName={grid} cols={6} />
-      ) : (
-        <div role="list">
-          {transactions.map((txn: TransactionView) => (
-            <div
-              role="listitem"
-              key={txn.id}
-              className={`grid min-h-12 items-center gap-3 border-b border-border px-5 py-2.5 transition-colors duration-150 hover:bg-foreground/[0.03] ${grid}`}
-            >
-              <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                {txn.postedAt}
-              </span>
-              {txn.matched ? (
-                <RecordHover recordId={txn.id} className="min-w-0">
-                  <span className="text-title truncate text-foreground">{txn.description}</span>
-                </RecordHover>
-              ) : (
-                <span className="text-title truncate text-foreground">{txn.description}</span>
-              )}
-              <span
-                className={cn(
-                  'text-right font-mono text-sm tabular-nums',
-                  txn.direction === 'credit' ? 'text-prepared' : 'text-foreground',
-                )}
-              >
-                {txn.amountDisplay}
-              </span>
-              <span className="text-meta truncate">{txn.account}</span>
-              <span className="min-w-0">
-                <CategoryChip category={txn.category} />
-              </span>
-              <MatchedChip matched={txn.matched} />
+    <HubCanvas>
+      <section aria-label="Banking" className="flex min-h-0 flex-1 flex-col">
+        <PageHeader
+          title="Banking"
+          count={transactions.length}
+          countNoun="transaction"
+          description="Mercury activity for this entity — matched to records or waiting to be."
+          source={source}
+          action={action}
+        />
+        <HubBody>
+          <TableHead
+            gridClassName={grid}
+            columns={[
+              { label: 'Posted' },
+              { label: 'Counterparty' },
+              { label: 'Amount', align: 'right' },
+              { label: 'Account' },
+              { label: 'Category' },
+              { label: 'Matched' },
+            ]}
+          />
+          {loading ? (
+            <TableSkeleton gridClassName={grid} cols={6} />
+          ) : (
+            <div role="list">
+              {transactions.map((txn: TransactionView) => (
+                <div role="listitem" key={txn.id} className={rowClass(grid, txn.matched)}>
+                  <span className="font-mono text-xs tabular-nums text-muted-foreground">
+                    {txn.postedAt}
+                  </span>
+                  {txn.matched ? (
+                    <RecordHover recordId={txn.id} className="min-w-0">
+                      <span className="text-title truncate text-foreground">
+                        {txn.description}
+                      </span>
+                    </RecordHover>
+                  ) : (
+                    <span className="text-title truncate text-foreground">{txn.description}</span>
+                  )}
+                  <span
+                    className={cn(
+                      'text-right font-mono text-sm tabular-nums',
+                      txn.direction === 'credit' ? 'text-prepared' : 'text-foreground',
+                    )}
+                  >
+                    {txn.amountDisplay}
+                  </span>
+                  <span className="text-meta truncate">{txn.account}</span>
+                  <span className="min-w-0">
+                    <CategoryChip category={txn.category} />
+                  </span>
+                  <MatchedChip matched={txn.matched} />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
-    </section>
+          )}
+        </HubBody>
+      </section>
+    </HubCanvas>
   )
 }
